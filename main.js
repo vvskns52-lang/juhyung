@@ -51,6 +51,9 @@ let behaviorList = JSON.parse(localStorage.getItem('ai_custom_behavior_activitie
 let globalResults = []; // { name, activities: [], record: "" }
 let isGenerating = false;
 
+// Global Views: 'generator' | 'dashboard'
+let currentView = 'generator';
+
 // ==========================================================================
 // 2. DOM Elements Selection
 // ==========================================================================
@@ -64,6 +67,11 @@ const modelSelect = document.getElementById('model-select');
 const lengthSelect = document.getElementById('length-select');
 const toneSelect = document.getElementById('tone-select');
 const customPromptInput = document.getElementById('custom-prompt');
+
+// 시스템 프롬프트 튜닝 요소
+const tuneNeisChk = document.getElementById('tune-neis');
+const tuneCareerChk = document.getElementById('tune-career');
+const tuneGrowthChk = document.getElementById('tune-growth');
 
 // Category Tabs & Dynamic Inputs
 const tabButtons = document.querySelectorAll('.tab-btn');
@@ -92,6 +100,19 @@ const copyAllBtn = document.getElementById('copy-all-btn');
 const exportExcelBtn = document.getElementById('export-excel-btn');
 
 const themeToggleBtn = document.getElementById('theme-toggle');
+
+// 신규 추가 요소: 글로벌 내비게이션, 찾아바꾸기, 대시보드
+const navGeneratorBtn = document.getElementById('nav-generator');
+const navDashboardBtn = document.getElementById('nav-dashboard');
+const generatorInputPanel = document.getElementById('generator-input-panel');
+const generatorResultPanel = document.getElementById('generator-result-panel');
+const dashboardView = document.getElementById('dashboard-view');
+
+const findTxtInput = document.getElementById('find-txt');
+const replaceTxtInput = document.getElementById('replace-txt');
+const btnReplaceAll = document.getElementById('btn-replace-all');
+const saveSessionBtn = document.getElementById('save-session-btn');
+const historyCardGrid = document.getElementById('history-card-grid');
 
 // ==========================================================================
 // 3. Theme Toggle & Storage Sync
@@ -122,6 +143,7 @@ window.onload = function() {
     initTheme();
     restoreSettings();
     initTabHandlers();
+    initGlobalNavHandlers(); // 글로벌 네비게이션 초기화
     switchCategory('autonomous'); // Start with autonomous category
     updateStudentCount();
     
@@ -146,6 +168,10 @@ window.onload = function() {
     // Action Buttons
     copyAllBtn.addEventListener('click', copyAllToClipboard);
     exportExcelBtn.addEventListener('click', exportToExcel);
+    
+    // 찾아바꾸기 및 대시보드 저장 바인딩
+    btnReplaceAll.addEventListener('click', replaceAllTexts);
+    saveSessionBtn.addEventListener('click', saveCurrentSessionToHistory);
 
     // API Help Modal Bindings
     const helpBtn = document.getElementById('api-help-btn');
@@ -156,6 +182,14 @@ window.onload = function() {
     closeModalBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
     helpModal.addEventListener('click', (e) => {
         if (e.target === helpModal) helpModal.classList.add('hidden');
+    });
+
+    // 글로벌 윤문 팝오버 닫기 처리
+    document.addEventListener('click', (e) => {
+        const activePopover = document.querySelector('.rewrite-popover');
+        if (activePopover && !e.target.closest('.action-wrapper')) {
+            activePopover.remove();
+        }
     });
 };
 
@@ -193,6 +227,38 @@ function updateStudentCount() {
     const text = studentNamesInput.value.trim();
     const count = text ? text.split('\n').map(n => n.trim()).filter(n => n !== '').length : 0;
     studentCountText.textContent = `학생 수: ${count}명`;
+}
+
+// 글로벌 내비게이션 전환 핸들러
+function initGlobalNavHandlers() {
+    navGeneratorBtn.addEventListener('click', () => switchView('generator'));
+    navDashboardBtn.addEventListener('click', () => switchView('dashboard'));
+}
+
+function switchView(view) {
+    if (isGenerating) {
+        alert("생기부 생성이 진행 중일 때는 화면을 전환할 수 없습니다.");
+        return;
+    }
+    currentView = view;
+    
+    // 탭 버튼 active 클래스 제어
+    if (view === 'generator') {
+        navGeneratorBtn.classList.add('active');
+        navDashboardBtn.classList.remove('active');
+        generatorInputPanel.classList.remove('hidden');
+        generatorResultPanel.classList.remove('hidden');
+        dashboardView.classList.add('hidden');
+    } else {
+        navGeneratorBtn.classList.remove('active');
+        navDashboardBtn.classList.add('active');
+        generatorInputPanel.classList.add('hidden');
+        generatorResultPanel.classList.add('hidden');
+        dashboardView.classList.remove('hidden');
+        
+        // 대시보드 리스트 리렌더링
+        renderHistoryDashboard();
+    }
 }
 
 // ==========================================================================
@@ -237,7 +303,7 @@ function switchCategory(category) {
         activityPoolLabel.innerHTML = `🧪 과목 수행/탐구 내용 풀(Pool) 선택 <span class="label-info">(학생별 랜덤 배정용)</span>`;
         poolNoticeMsg.textContent = `* 풍부한 내용 조합을 위해 수행평가 및 교과 활동을 4개 이상 등록해 주세요.`;
         customActivityInput.placeholder = "예: 수학 심화 발표 - 프랙탈 이론 탐구";
-        tableResultHeader.textContent = "배정된 탐구 및 과목별 세부능력 특기사항 (더블클릭하여 직접 수정 가능)";
+        tableResultHeader.textContent = "배정된 탐구 및 과목별 세부능력 특기사항 (에디터 그리드 포커스 시 수정 가능)";
     } else if (category === 'behavior') {
         subjectNameGroup.classList.add('hidden');
         activityPoolLabel.innerHTML = `🌱 인성 요소 및 행동 관찰 풀(Pool) 선택 <span class="label-info">(학생별 랜덤 배정용)</span>`;
@@ -284,37 +350,122 @@ function getActiveLists() {
 function renderCheckboxes() {
     checkboxGrid.innerHTML = ''; 
     const lists = getActiveLists();
-
-    // Render Custom Activities
-    lists.custom.forEach((act, index) => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'checkbox-wrapper custom-added';
-        wrapper.innerHTML = `
-            <label class="checkbox-item">
-                <input type="checkbox" value="${act}" checked> 
-                <span title="${act}">${act}</span>
-            </label>
-            <button class="btn-delete" data-index="${index}" title="완전 삭제">✖</button>
-        `;
-        wrapper.querySelector('.btn-delete').addEventListener('click', (e) => {
-            const idx = e.target.getAttribute('data-index');
-            deleteCustomActivity(parseInt(idx));
+    
+    // 로컬 스토리지에 정렬 순서가 보존되어 있다면 이를 반영해 병합
+    const savedOrderKey = `ai_activity_order_${activeCategory}_v8`;
+    const savedOrder = JSON.parse(localStorage.getItem(savedOrderKey)) || [];
+    
+    // 전체 항목 리스트 빌드 (커스텀 + 디폴트)
+    let allActivities = [];
+    
+    // 이미 체크된 커스텀/디폴트 텍스트 추출용
+    lists.custom.forEach(act => allActivities.push({ text: act, isCustom: true }));
+    lists.defaults.forEach(act => allActivities.push({ text: act, isCustom: false }));
+    
+    // 저장된 우선순위 순서대로 재배치
+    if (savedOrder.length > 0) {
+        allActivities.sort((a, b) => {
+            let idxA = savedOrder.indexOf(a.text);
+            let idxB = savedOrder.indexOf(b.text);
+            if (idxA === -1) idxA = 999;
+            if (idxB === -1) idxB = 999;
+            return idxA - idxB;
         });
-        checkboxGrid.appendChild(wrapper);
-    });
+    }
 
-    // Render Default Activities
-    lists.defaults.forEach((act) => {
+    // Render Draggable Tags
+    allActivities.forEach((item, index) => {
         const wrapper = document.createElement('div');
-        wrapper.className = 'checkbox-wrapper';
+        wrapper.className = `draggable-tag${item.isCustom ? ' custom-added' : ''}`;
+        wrapper.setAttribute('draggable', 'true');
+        wrapper.setAttribute('data-index', index);
+        wrapper.setAttribute('data-text', item.text);
+        
         wrapper.innerHTML = `
-            <label class="checkbox-item">
-                <input type="checkbox" value="${act}" checked> 
-                <span title="${act}">${act}</span>
-            </label>
+            <div class="tag-content-area">
+                <span class="tag-drag-handle">☰</span>
+                <span class="tag-index-badge">${index + 1}</span>
+                <label class="checkbox-item" style="cursor: grab;">
+                    <input type="checkbox" value="${item.text}" checked> 
+                    <span class="tag-text" title="${item.text}">${item.text}</span>
+                </label>
+            </div>
+            ${item.isCustom ? `<button class="btn-delete" title="완전 삭제">✖</button>` : ''}
         `;
+
+        if (item.isCustom) {
+            // 커스텀 요소 삭제 이벤트 바인딩
+            wrapper.querySelector('.btn-delete').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const targetText = wrapper.getAttribute('data-text');
+                const customIdx = lists.custom.indexOf(targetText);
+                if (customIdx !== -1) {
+                    deleteCustomActivity(customIdx);
+                }
+            });
+        }
+        
+        // 드래그 앤 드롭 네이티브 이벤트 바인딩
+        wrapper.addEventListener('dragstart', handleDragStart);
+        wrapper.addEventListener('dragover', handleDragOver);
+        wrapper.addEventListener('drop', handleDrop);
+        wrapper.addEventListener('dragend', handleDragEnd);
+
         checkboxGrid.appendChild(wrapper);
     });
+}
+
+// 네이티브 드래그 앤 드롭 핸들러 로직
+let dragSrcEl = null;
+
+function handleDragStart(e) {
+    this.classList.add('dragging');
+    dragSrcEl = this;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', this.getAttribute('data-index'));
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault(); 
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+}
+
+function handleDrop(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    if (dragSrcEl !== this) {
+        const fromIdx = parseInt(dragSrcEl.getAttribute('data-index'));
+        const toIdx = parseInt(this.getAttribute('data-index'));
+        
+        reorderActivities(fromIdx, toIdx);
+    }
+    return false;
+}
+
+// 드래그 드롭 후 내부 배열 순서 갱신 및 로컬저장소 동기화
+function reorderActivities(fromIdx, toIdx) {
+    const tags = Array.from(checkboxGrid.querySelectorAll('.draggable-tag'));
+    
+    // DOM 요소를 기준으로 텍스트 배열을 추출
+    let activityTexts = tags.map(tag => tag.getAttribute('data-text'));
+    
+    // 요소 스왑
+    const [movedItem] = activityTexts.splice(fromIdx, 1);
+    activityTexts.splice(toIdx, 0, movedItem);
+    
+    // 순서 정렬 정보 localStorage 저장
+    const savedOrderKey = `ai_activity_order_${activeCategory}_v8`;
+    localStorage.setItem(savedOrderKey, JSON.stringify(activityTexts));
+    
+    // 화면 재배치
+    renderCheckboxes();
 }
 
 function addCustomActivity() {
@@ -400,7 +551,7 @@ function buildPrompt(studentName, activities, tone, length, customPrompt) {
     let systemInstruction = "";
     let dateRule = "";
     
-    // Tone mapping
+    // Tone mapping (8 어조 지원)
     let toneGuide = "";
     switch(tone) {
         case "active":
@@ -411,6 +562,18 @@ function buildPrompt(studentName, activities, tone, length, customPrompt) {
             break;
         case "cooperative":
             toneGuide = "급우들과 소통하고 조력한 구체적 상황을 묘사할 것(~의 과정에서 의견을 조율하여 완성함, 모둠 활동 시 역할을 세분화하여 협력함 등).";
+            break;
+        case "literary":
+            toneGuide = "품격 높은 문어체 문체로 서술하며, 학문적 깊이와 학습에 대한 탐구욕, 인지적 호기심이 구체적 문장으로 나타나게 할 것.";
+            break;
+        case "hybrid":
+            toneGuide = "부드럽고 유연한 개조식 문어체 및 행동 관찰 서술을 혼용하여 문맥의 연속성과 부드러움을 극대화해 서술할 것.";
+            break;
+        case "evidence":
+            toneGuide = "학생이 진행한 프로젝트 주제, 발표명, 독서 서명 등 실질적이고 구체적인 팩트 사례와 성취 내용을 상세히 기재할 것.";
+            break;
+        case "character":
+            toneGuide = "공동체 역량, 리더십, 소통 및 갈등 조율 등 학생의 인성적 장점과 도덕성, 나눔의 가치를 중점적으로 기술할 것.";
             break;
         default:
             toneGuide = "행동 및 학습 사실 위주로 건조하고 객관적인 제3자적 관찰자 뉘앙스로 작성할 것.";
@@ -431,6 +594,18 @@ function buildPrompt(studentName, activities, tone, length, customPrompt) {
 
     let customGuide = customPrompt ? `[추가 지시사항] 특히 다음 문구를 반영하거나 뉘앙스를 녹여줘: "${customPrompt}"` : "";
 
+    // 시스템 프롬프트 미세 조정 (Tuning) 가이드 반영
+    let tuningGuide = "";
+    if (tuneNeisChk && tuneNeisChk.checked) {
+        tuningGuide += "\n- **[NEIS 준수 극대화]**: 본문 내에 학생 이름, 주어(예: '이 학생은', '그는')를 완전히 제외하고 바로 행위 사실로 시작하며, '우수함', '창의적임' 등의 추상적 형용사적 평가를 철저히 생략하십시오.";
+    }
+    if (tuneCareerChk && tuneCareerChk.checked) {
+        tuningGuide += "\n- **[진로 역량 강화]**: 활동 내용을 학생의 학업 진로 희망 및 관심 교과 역량과 입체적으로 연계하여 학문적 성장 의지가 드러나도록 가중치를 두십시오.";
+    }
+    if (tuneGrowthChk && tuneGrowthChk.checked) {
+        tuningGuide += "\n- **[학습 성장 과정 기술]**: 학생이 직면했던 문제 상황이나 탐구 피드백을 통해 어떠한 노력을 통해 성장 및 개선을 이루었는지 인과 관계 구조로 상세히 기술하십시오.";
+    }
+
     // Category specific builder
     if (activeCategory === 'subject') {
         const subjectName = subjectNameInput.value.trim() || "해당 과목";
@@ -444,7 +619,7 @@ function buildPrompt(studentName, activities, tone, length, customPrompt) {
     } else if (activeCategory === 'behavior') {
         categoryGoal = `학교생활기록부의 '행동특성 및 종합의견(행발)'`;
         systemInstruction = `
-        - 한 학기 또는 일 년 동안 관찰된 학생의 인성(협동, 배려, 성실성, 갈동 조율 등), 리더십, 생활 태도 및 관계성 등을 종합적으로 아우를 것.
+        - 한 학기 또는 일 년 동안 관찰된 학생의 인성(협동, 배려, 성실성, 갈등 조율 등), 리더십, 생활 태도 및 관계성 등을 종합적으로 아우를 것.
         - 단순 나열이 아니라 학생의 인성적 장점과 성장 과정이 교사 추천서처럼 따뜻하고 신뢰성 있게 녹아들도록 할 것.
         `;
     } else {
@@ -479,6 +654,7 @@ function buildPrompt(studentName, activities, tone, length, customPrompt) {
     5. 세부 규격:
        - ${dateRule}
        - ${customGuide}
+       ${tuningGuide}
     6. 출력 형식:
        - 어떠한 인사말이나 서론, 부연설명도 절대 포함하지 말고, 오직 바로 생기부에 복사하여 붙여넣을 수 있는 완성된 텍스트 결과만 출력할 것.
     `;
@@ -658,12 +834,14 @@ function appendResultRow(name, activities, record, rowIndex, isSuccess) {
         <td class="col-name">${name}</td>
         <td>
             <div class="tags-wrapper">${tagsHTML}</div>
-            <div class="record-editor" contenteditable="${isSuccess}" id="editor-${rowIndex}">${record}</div>
+            <div class="record-editor-grid" contenteditable="${isSuccess}" id="editor-${rowIndex}">${record}</div>
             <div class="row-action-bar">
                 <span class="char-counter" id="counter-${rowIndex}">글자 수: ${record.length}자 (공백포함)</span>
                 <div class="row-actions">
                     <button class="btn-inline-action btn-row-copy" data-index="${rowIndex}">📋 복사</button>
-                    <button class="btn-inline-action btn-row-spell" data-index="${rowIndex}">🔍 맞춤법 교정</button>
+                    <div class="action-wrapper">
+                        <button class="btn-inline-action btn-row-spell" data-index="${rowIndex}">🔍 AI 윤문</button>
+                    </div>
                     <button class="btn-inline-action btn-row-regen" data-index="${rowIndex}" ${!isSuccess ? 'style="border-color:var(--accent-red); color:var(--accent-red);"' : ''}>🔄 재생성</button>
                 </div>
             </div>
@@ -671,7 +849,7 @@ function appendResultRow(name, activities, record, rowIndex, isSuccess) {
     `;
 
     // Bind Character counter listener
-    const editor = tr.querySelector('.record-editor');
+    const editor = tr.querySelector('.record-editor-grid');
     const counter = tr.querySelector('.char-counter');
     
     editor.addEventListener('input', () => {
@@ -693,8 +871,9 @@ function appendResultRow(name, activities, record, rowIndex, isSuccess) {
     });
 
     tr.querySelector('.btn-row-spell').addEventListener('click', (e) => {
+        e.stopPropagation();
         const idx = e.target.getAttribute('data-index');
-        correctSpelling(idx, e.target);
+        showRewritePopover(idx, e.target);
     });
 
     tr.querySelector('.btn-row-regen').addEventListener('click', (e) => {
@@ -703,6 +882,34 @@ function appendResultRow(name, activities, record, rowIndex, isSuccess) {
     });
 
     resultTbody.appendChild(tr);
+}
+
+// AI 윤문 선택 팝오버 메뉴 생성 및 띄우기
+function showRewritePopover(index, btnElement) {
+    // 기존에 활성화된 팝오버 제거
+    const oldPopover = document.querySelector('.rewrite-popover');
+    if (oldPopover) oldPopover.remove();
+
+    const popover = document.createElement('div');
+    popover.className = 'rewrite-popover';
+    popover.innerHTML = `
+        <button class="rewrite-option" data-mode="spell">🔍 맞춤법 및 문장 교정</button>
+        <button class="rewrite-option" data-mode="shorten">📏 문장 길이 축소 (약 20%)</button>
+        <button class="rewrite-option" data-mode="expand">➕ 활동 구체화 (글자 수 확장)</button>
+        <button class="rewrite-option" data-mode="professional">🎓 전문 학업 어휘로 변환</button>
+    `;
+
+    // 팝오버를 버튼 감싸는 래퍼에 추가
+    btnElement.parentElement.appendChild(popover);
+
+    // 각 메뉴 항목 클릭 이벤트 바인딩
+    popover.querySelectorAll('.rewrite-option').forEach(opt => {
+        opt.addEventListener('click', (e) => {
+            const mode = e.target.getAttribute('data-mode');
+            popover.remove();
+            rewriteSentence(index, mode, btnElement);
+        });
+    });
 }
 
 // ==========================================================================
@@ -771,7 +978,7 @@ async function regenerateOneRecord(index) {
     }
 }
 
-async function correctSpelling(index, btnElement) {
+async function rewriteSentence(index, mode, btnElement) {
     const apiKey = apiKeyInput.value.trim();
     const selectedModel = modelSelect.value;
 
@@ -783,32 +990,46 @@ async function correctSpelling(index, btnElement) {
     
     if (editor.getAttribute('contenteditable') === 'false' && isGenerating) return;
 
-    // UI Feedback for spell checking
     editor.setAttribute('contenteditable', 'false');
     const originalText = editor.innerText.trim();
     
     if (!originalText || originalText.startsWith("생성 실패:")) {
-        alert("교정할 문장이 올바르지 않습니다.");
+        alert("윤문할 문장이 올바르지 않습니다.");
         editor.setAttribute('contenteditable', 'true');
         return;
     }
 
     btnElement.disabled = true;
     const originalBtnText = btnElement.textContent;
-    btnElement.textContent = "⏳ 교정 중";
+    btnElement.textContent = "⏳ 처리중";
+
+    let modePrompt = "";
+    switch(mode) {
+        case "shorten":
+            modePrompt = "제시된 문맥의 핵심 행위 팩트는 그대로 유지하되, 군더더기 서술을 압축하여 원본 대비 분량을 약 20% 축소해서 깔끔하게 다듬어줘.";
+            break;
+        case "expand":
+            modePrompt = "제시된 문맥의 팩트 골격을 훼손하지 않으면서, 학생의 행동 역량 및 관찰된 태도 묘사를 훨씬 다채롭고 구체적으로 확장하여 풍성하게 채워줘.";
+            break;
+        case "professional":
+            modePrompt = "교육부 학교생활기록부 기재 가이드에 맞게 격조 높은 교육용 표준 학술 용어와 교과 전문 어휘를 적절히 반영하여 매우 신뢰감 있고 기품 있는 문장으로 변환해줘.";
+            break;
+        default:
+            modePrompt = "문장의 오탈자, 맞춤법, 띄어쓰기 오류를 정확히 바로잡고 자연스럽게 윤문해줘.";
+    }
 
     const promptText = `
-    너는 대한민국 학교생활기록부 기재 요령과 한국어 어문 규정에 정통한 한국어 교정 전문가야.
-    제시된 문장의 맞춤법, 띄어쓰기, 오탈자를 정확히 교정하고 자연스럽게 문맥을 매끄럽게 교정해줘.
+    너는 대한민국 학교생활기록부 기재 요령과 한국어 문장 교정에 정통한 최고 권위의 교육 전문 윤문가야.
+    아래 지시 조건에 맞춰 입력된 생기부 문장을 완벽하게 교정 및 변경해줘.
 
     [작성 및 교정 조건]
-    1. 어미 종결 보존: 개조식 종결어미인 '~함.', '~보임.', '~다짐함.', '~노력함.' 등 명사형/개조식 문체를 반드시 그대로 보존할 것 (일반 에세이체나 서술식 어미로 변환 금지).
-    2. 날짜 및 괄호 형식 보존: 문장 내 괄호 안에 날짜가 기재된 부분(예: '(5/15)', '(4/20)')은 절대 수정하거나 생략하지 말고 완벽히 보존할 것.
-    3. 이름 제외 보존: 문장 속에 학생의 이름이나 불필요한 주어가 들어가지 않도록 한 채 교정할 것.
-    4. 의미 변형 금지: 원래 문장이 전하고자 했던 행동 팩트와 탐구 성취 내용을 함부로 변경하거나 임의로 새로운 활동 내용을 덧붙이지 말 것.
-    5. 출력 형식: 교정 내역에 대한 설명, 안내 멘트, 인사말 등을 절대 덧붙이지 말고, 오직 100% 교정이 완료된 문장 결과물만 반환할 것.
+    1. 지침: ${modePrompt}
+    2. 어미 종결 보존: 대한민국 NEIS 규격에 부합하도록 개조식 종결어미인 '~함.', '~보임.', '~노력함.', '~기여함.' 등으로 완벽히 문맥을 마쳐줘. (에세이체 절대 금지).
+    3. 날짜 및 형식 보존: 문장 속 괄호 날짜(예: '(5/15)') 및 팩트 항목은 절대 생략하거나 임의로 다른 날짜로 바꾸지 말 것.
+    4. 이름 제외 보존: 문장 본문 내에 학생의 이름이나 주어(예: '이 학생은', '그는')가 노출되지 않아야 함.
+    5. 출력 형식: 윤문된 최종 텍스트 결과물만 출력해야 하며, 설명이나 앞뒤 인사는 절대 포함하지 마십시오.
 
-    [교정 대상 문장]
+    [대상 문장]
     "${originalText}"
     `;
 
@@ -827,14 +1048,13 @@ async function correctSpelling(index, btnElement) {
         }
 
         // Success Feedback
-        btnElement.classList.add('btn-row-spell'); // Ensure spell check color theme applied
         btnElement.textContent = "✓ 완료";
         setTimeout(() => {
             btnElement.textContent = originalBtnText;
         }, 1500);
 
     } catch (error) {
-        alert(`맞춤법 교정 실패: ${error.message}`);
+        alert(`AI 윤문 가동 실패: ${error.message}`);
         editor.innerText = originalText;
         btnElement.textContent = originalBtnText;
     } finally {
@@ -910,4 +1130,260 @@ function exportToExcel() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+// ==========================================================================
+// 12. Premium Extended Functions (Find/Replace & History Dashboard)
+// ==========================================================================
+
+// 일괄 찾아바꾸기 (Find & Replace)
+function replaceAllTexts() {
+    if (globalResults.length === 0) {
+        alert("치환할 결과가 없습니다. 먼저 생기부를 생성해 주세요.");
+        return;
+    }
+    
+    const findText = findTxtInput.value;
+    const replaceText = replaceTxtInput.value;
+    
+    if (!findText) {
+        alert("찾을 단어를 입력해주세요!");
+        findTxtInput.focus();
+        return;
+    }
+    
+    if (!confirm(`전체 학생 결과물에서 "${findText}"을(를) "${replaceText}"(으)로 일괄 변경하시겠습니까?`)) {
+        return;
+    }
+    
+    let replaceCount = 0;
+    
+    globalResults.forEach((student, index) => {
+        const regex = new RegExp(escapeRegExp(findText), 'g');
+        if (student.record.includes(findText)) {
+            const updatedRecord = student.record.replace(regex, replaceText);
+            student.record = updatedRecord;
+            replaceCount++;
+            
+            // UI 에디터 및 카운터 반영
+            const editor = document.getElementById(`editor-${index}`);
+            if (editor) {
+                editor.innerText = updatedRecord;
+                
+                // 캐릭터 카운터 업데이트
+                const counter = document.getElementById(`counter-${index}`);
+                if (counter) {
+                    counter.textContent = `글자 수: ${updatedRecord.length}자 (공백포함)`;
+                    if (updatedRecord.length > 500) {
+                        counter.classList.add('warning');
+                    } else {
+                        counter.classList.remove('warning');
+                    }
+                }
+            }
+        }
+    });
+    
+    alert(`총 ${replaceCount}명의 학생 결과물이 치환되었습니다.`);
+    findTxtInput.value = '';
+    replaceTxtInput.value = '';
+}
+
+// 정규식 특수문자 이스케이프 유틸리티
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// 현재 세션 이력을 기록 보관소에 저장
+function saveCurrentSessionToHistory() {
+    if (globalResults.length === 0) {
+        alert("보관할 데이터가 없습니다. 먼저 생기부를 일괄 생성해주세요!");
+        return;
+    }
+    
+    const sessionName = activeCategory === 'subject' 
+        ? `${subjectNameInput.value.trim() || '미지정 교과'} 과세특` 
+        : (activeCategory === 'behavior' ? '행동특성 및 종합의견' : '자율활동 특기사항');
+        
+    const timestamp = new Date().toLocaleString('ko-KR');
+    
+    const newSession = {
+        id: Date.now(),
+        date: timestamp,
+        category: activeCategory,
+        subjectName: subjectNameInput.value.trim(),
+        sessionName: sessionName,
+        studentCount: globalResults.length,
+        studentNames: studentNamesInput.value,
+        options: {
+            model: modelSelect.value,
+            length: lengthSelect.value,
+            tone: toneSelect.value,
+            customPrompt: customPromptInput.value,
+            tuneNeis: tuneNeisChk ? tuneNeisChk.checked : false,
+            tuneCareer: tuneCareerChk ? tuneCareerChk.checked : false,
+            tuneGrowth: tuneGrowthChk ? tuneGrowthChk.checked : false
+        },
+        results: globalResults
+    };
+    
+    let history = JSON.parse(localStorage.getItem('eduwrite_history_v8')) || [];
+    history.unshift(newSession); // 최신 보관 내역이 제일 먼저 오도록
+    localStorage.setItem('eduwrite_history_v8', JSON.stringify(history));
+    
+    alert("💾 현재 생성 세션이 로컬 기록 보관소에 안전하게 저장되었습니다!");
+}
+
+// 보관소 대시보드 카드 렌더링
+function renderHistoryDashboard() {
+    historyCardGrid.innerHTML = '';
+    const history = JSON.parse(localStorage.getItem('eduwrite_history_v8')) || [];
+    
+    if (history.length === 0) {
+        historyCardGrid.innerHTML = `
+            <div class="empty-dashboard">
+                <p>아직 보관된 기록이 없습니다. 생기부를 생성한 후 보관소에 저장해 보세요!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    history.forEach((session, index) => {
+        const card = document.createElement('div');
+        card.className = 'history-card';
+        
+        let catText = "자율활동";
+        let catClass = "autonomous";
+        if (session.category === 'subject') {
+            catText = "과세특";
+            catClass = "subject";
+        } else if (session.category === 'behavior') {
+            catText = "행발";
+            catClass = "behavior";
+        }
+        
+        // 대표 학생 일부 프리뷰
+        const sampleStudents = session.results.slice(0, 3).map(r => r.name).join(', ');
+        const suffix = session.results.length > 3 ? ' 외' : '';
+        
+        card.innerHTML = `
+            <div class="card-meta">
+                <span class="card-date">${session.date}</span>
+                <span class="card-category-badge ${catClass}">${catText}</span>
+            </div>
+            <h3 class="card-title">${session.sessionName}</h3>
+            <div class="card-info-row">
+                <div class="card-info-item">👤 ${session.studentCount}명</div>
+                <div class="card-info-item">⚙️ ${session.options.model.replace('gemini-', '')}</div>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px;">
+                <strong>학생:</strong> ${sampleStudents}${suffix}
+            </p>
+            <div class="card-footer-actions">
+                <button class="btn-card-load" data-index="${index}">📂 불러오기</button>
+                <button class="btn-card-delete" data-index="${index}">🗑️ 삭제</button>
+            </div>
+        `;
+        
+        // 카드 내 액션 바인딩
+        card.querySelector('.btn-card-load').addEventListener('click', (e) => {
+            const idx = parseInt(e.target.getAttribute('data-index'));
+            loadSessionFromHistory(idx);
+        });
+        
+        card.querySelector('.btn-card-delete').addEventListener('click', (e) => {
+            const idx = parseInt(e.target.getAttribute('data-index'));
+            deleteSessionFromHistory(idx);
+        });
+        
+        historyCardGrid.appendChild(card);
+    });
+}
+
+// 보관소 히스토리에서 데이터 가져와 현재 상태 복구
+function loadSessionFromHistory(index) {
+    const history = JSON.parse(localStorage.getItem('eduwrite_history_v8')) || [];
+    const session = history[index];
+    
+    if (!session) return;
+    
+    if (!confirm("⚠️ 기록을 불러오면 현재 작성 중인 설정 및 결과물이 모두 유실됩니다. 그래도 진행하시겠습니까?")) {
+        return;
+    }
+    
+    // 1. 카테고리 전환 및 탭 액티브 제어
+    tabButtons.forEach(btn => {
+        if (btn.getAttribute('data-category') === session.category) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // 2. 카테고리 상태 설정
+    activeCategory = session.category;
+    if (activeCategory === 'subject') {
+        subjectNameGroup.classList.remove('hidden');
+        subjectNameInput.value = session.subjectName || '';
+    } else {
+        subjectNameGroup.classList.add('hidden');
+    }
+    
+    // 3. 인풋 값 복구
+    studentNamesInput.value = session.studentNames || '';
+    updateStudentCount();
+    
+    modelSelect.value = session.options.model || 'gemini-2.5-flash';
+    lengthSelect.value = session.options.length || 'medium';
+    toneSelect.value = session.options.tone || 'default';
+    customPromptInput.value = session.options.customPrompt || '';
+    
+    if (tuneNeisChk) tuneNeisChk.checked = session.options.tuneNeis || false;
+    if (tuneCareerChk) tuneCareerChk.checked = session.options.tuneCareer || false;
+    if (tuneGrowthChk) tuneGrowthChk.checked = session.options.tuneGrowth || false;
+    
+    // 4. 결과 테이블 복구
+    globalResults = session.results || [];
+    resultTbody.innerHTML = '';
+    
+    if (globalResults.length > 0) {
+        globalResults.forEach((student, rIdx) => {
+            appendResultRow(student.name, student.activities, student.record, rIdx, true);
+        });
+        
+        // 완료율 배지 업데이트
+        progressContainer.classList.add('hidden');
+        progressBarFill.style.width = '100%';
+        progressPercent.textContent = '100% 완료';
+    } else {
+        resultTbody.innerHTML = `
+            <tr>
+                <td colspan="2" class="empty-state">
+                    <div class="empty-icon">📊</div>
+                    <p>생성 버튼을 누르면 실시간으로 결과가 이곳에 채워집니다.</p>
+                </td>
+            </tr>
+        `;
+    }
+    
+    // 5. 체크박스(태그) UI 렌더링
+    renderCheckboxes();
+    
+    // 6. 생성기 뷰로 자동 탭 전환
+    switchView('generator');
+    alert("📂 보관 기록이 성공적으로 로드되었습니다!");
+}
+
+// 보관소 히스토리에서 이력 개별 삭제
+function deleteSessionFromHistory(index) {
+    let history = JSON.parse(localStorage.getItem('eduwrite_history_v8')) || [];
+    
+    if (!confirm("🗑️ 이 보관 기록을 영구히 삭제하시겠습니까?")) {
+        return;
+    }
+    
+    history.splice(index, 1);
+    localStorage.setItem('eduwrite_history_v8', JSON.stringify(history));
+    
+    renderHistoryDashboard();
 }

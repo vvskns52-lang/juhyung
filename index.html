@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✨ AI 생기부 종합 일괄 생성기 (Premium)</title>
+    <title>✨ EduWrite AI Premium | 생활기록부 스마트 일괄 생성기</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,8 +18,12 @@
             <div class="logo-area">
                 <span class="logo-emoji">✨</span>
                 <div>
-                    <h1>AI 생기부 종합 일괄 생성기</h1>
+                    <h1 style="display: inline-flex; align-items: center; gap: 8px;">EduWrite AI <span class="premium-badge">PREMIUM</span></h1>
                     <p class="subtitle">선생님의 소중한 시간을 절약하는 스마트한 나이스(NEIS) 맞춤형 도구</p>
+                </div>
+                <div class="global-nav">
+                    <button class="global-tab-btn active" id="nav-generator">🛠️ 생기부 생성기</button>
+                    <button class="global-tab-btn" id="nav-dashboard">🗂️ 기록 보관소</button>
                 </div>
             </div>
             <button id="theme-toggle" class="theme-toggle-btn" aria-label="테마 전환">
@@ -30,7 +34,7 @@
 
     <main class="main-container">
         <!-- 1. 정보 및 설정 패널 (좌측) -->
-        <section class="panel panel-input glass">
+        <section class="panel panel-input glass" id="generator-input-panel">
             <div class="panel-header">
                 <span class="step-badge">1</span>
                 <h2>정보 및 옵션 설정</h2>
@@ -99,15 +103,45 @@
                                 <label for="tone-select">🗣️ 어조 스타일</label>
                                 <select id="tone-select">
                                     <option value="default" selected>표준 개조식 (~함, ~보임)</option>
-                                    <option value="active">적극적 어조 (~하며 능동적으로 동참함)</option>
-                                    <option value="reflective">자기 성찰형 (~하며 자신을 돌아봄)</option>
-                                    <option value="cooperative">협동/배려형 (~하여 타인을 돕는 태도 보임)</option>
+                                    <option value="active">적극적 행동형 (~에 주도적으로 기여함)</option>
+                                    <option value="reflective">자기 성찰형 (~을 분석해 개선책을 찾아냄)</option>
+                                    <option value="cooperative">협동/배려형 (~하여 타인과 원만히 조율함)</option>
+                                    <option value="literary">문어체 중심 (~을 토대로 탐구하는 자세 보임)</option>
+                                    <option value="hybrid">혼용형 (~함. 특히 ~한 모습을 지녀 발전 가능성 큼)</option>
+                                    <option value="evidence">구체 사례 중심 (수행 보고서 주제 및 세부 내용 부각)</option>
+                                    <option value="character">인성 역량 특화 (나눔, 배려, 성실 등 공동체 의식 집중)</option>
                                 </select>
                             </div>
                         </div>
                         <div class="option-item full-width" style="margin-top: 12px;">
                             <label for="custom-prompt">💡 추가 강조 내용 (선택사항)</label>
                             <input type="text" id="custom-prompt" placeholder="예: '주도성을 보여줌', '진로와의 연관성 강조'">
+                        </div>
+                        <div class="option-item full-width" style="margin-top: 12px;">
+                            <label>⚙️ 시스템 프롬프트 미세 조정 (Tuning)</label>
+                            <div class="tuning-options">
+                                <label class="tuning-switch">
+                                    <span>🔒 NEIS 입력 가이드 준수 강제 (주어/추상어 배제)</span>
+                                    <span class="switch-control">
+                                        <input type="checkbox" id="tune-neis" checked>
+                                        <span class="slider-round"></span>
+                                    </span>
+                                </label>
+                                <label class="tuning-switch">
+                                    <span>🧭 진로 탐구 연결성 강화 (관심 분야 연계 극대화)</span>
+                                    <span class="switch-control">
+                                        <input type="checkbox" id="tune-career">
+                                        <span class="slider-round"></span>
+                                    </span>
+                                </label>
+                                <label class="tuning-switch">
+                                    <span>📈 학습 성장 과정 기술 (피드백 극복 과정 묘사)</span>
+                                    <span class="switch-control">
+                                        <input type="checkbox" id="tune-growth">
+                                        <span class="slider-round"></span>
+                                    </span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -127,8 +161,8 @@
                         <button class="btn-add" id="add-activity-btn">+ 추가</button>
                     </div>
                     
-                    <div class="checkbox-grid" id="checkbox-grid"></div>
-                    <span class="highlight-notice" id="pool-notice-msg">* 다양하고 조화로운 배정을 위해 활동을 4개 이상 등록하는 것을 권장합니다.</span>
+                    <div class="activity-tag-list" id="checkbox-grid"></div>
+                    <span class="highlight-notice" id="pool-notice-msg">* 다양하고 조화로운 배정을 위해 활동을 4개 이상 등록하는 것을 권장합니다. (💡 태그를 드래그하여 우선순위를 정할 수 있습니다)</span>
                 </div>
 
                 <button class="btn-generate" id="generate-btn">🤖 명단 일괄 생성 시작</button>
@@ -136,7 +170,7 @@
         </section>
 
         <!-- 2. 실시간 생성 결과 패널 (우측) -->
-        <section class="panel panel-result glass">
+        <section class="panel panel-result glass" id="generator-result-panel">
             <div class="panel-header">
                 <span class="step-badge">2</span>
                 <h2>실시간 생성 결과</h2>
@@ -152,12 +186,21 @@
             </div>
 
             <div class="panel-body flex-column">
+                <!-- 일괄 찾아바꾸기 툴바 -->
+                <div class="find-replace-toolbar">
+                    <span class="find-replace-title">🔍 일괄 찾아바꾸기:</span>
+                    <input type="text" id="find-txt" class="find-replace-input" placeholder="찾을 단어">
+                    <span style="color: var(--text-muted);">➔</span>
+                    <input type="text" id="replace-txt" class="find-replace-input" placeholder="바꿀 단어">
+                    <button type="button" id="btn-replace-all" class="btn-replace-action">일괄 변경</button>
+                </div>
+
                 <div class="table-container">
                     <table id="result-table">
                         <thead>
                             <tr>
                                 <th class="col-name">이름</th>
-                                <th id="table-result-header">배정된 활동 및 자율활동 특기사항 (더블클릭하여 직접 수정 가능)</th>
+                                <th id="table-result-header">배정된 활동 및 자율활동 특기사항 (에디터 그리드 포커스 시 수정 가능)</th>
                             </tr>
                         </thead>
                         <tbody id="result-tbody">
@@ -174,6 +217,28 @@
                 <div class="action-footer">
                     <button class="btn-copy-all" id="copy-all-btn">📋 전체 클립보드 복사</button>
                     <button class="btn-excel" id="export-excel-btn">📊 엑셀(CSV) 파일로 다운로드</button>
+                </div>
+
+                <!-- 보관소 저장 단추 및 안전 문구 -->
+                <button class="btn-secondary" id="save-session-btn" style="margin-top: 12px; width: 100%; padding: 12px; font-size: 0.9rem; font-weight: 700; border-color: var(--accent-blue); color: var(--accent-blue);">💾 현재 생성 세션 기록 보관소에 저장</button>
+
+                <div class="privacy-notice-box">
+                    💡 **안전한 로컬 프라이버시 보증**: EduWrite AI는 입력하신 학생 명단과 API 키를 외부 서버로 유출하지 않고 오직 사용자의 브라우저 내에서 가상 개선 시뮬레이션용으로 활용하므로 기밀이 유지됩니다.
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 기록 보관소 패널 (기본 숨김) -->
+        <section class="panel glass hidden" id="dashboard-view" style="grid-column: span 2;">
+            <div class="dashboard-header-row">
+                <h2 style="display: inline-flex; align-items: center; gap: 8px;">🗂️ 기록 보관소 <span class="label-info">(로컬 히스토리)</span></h2>
+                <span class="security-badge">🔒 개인 정보 브라우저 암호화 저장 완료</span>
+            </div>
+            <div class="panel-body">
+                <div class="history-card-grid" id="history-card-grid">
+                    <div class="empty-dashboard">
+                        <p>아직 보관된 기록이 없습니다. 생기부를 생성한 후 보관소에 저장해 보세요!</p>
+                    </div>
                 </div>
             </div>
         </section>
