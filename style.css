@@ -921,6 +921,17 @@ tr:hover td {
     background-color: var(--accent-blue-light);
 }
 
+.btn-row-spell {
+    border-color: var(--accent-emerald) !important;
+    color: var(--accent-emerald) !important;
+}
+
+.btn-row-spell:hover {
+    background-color: var(--accent-emerald-light) !important;
+    color: var(--accent-emerald-hover) !important;
+    border-color: var(--accent-emerald-hover) !important;
+}
+
 /* Footer layout (Result Buttons) */
 .action-footer {
     display: grid;

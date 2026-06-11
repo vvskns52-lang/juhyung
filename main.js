@@ -663,6 +663,7 @@ function appendResultRow(name, activities, record, rowIndex, isSuccess) {
                 <span class="char-counter" id="counter-${rowIndex}">글자 수: ${record.length}자 (공백포함)</span>
                 <div class="row-actions">
                     <button class="btn-inline-action btn-row-copy" data-index="${rowIndex}">📋 복사</button>
+                    <button class="btn-inline-action btn-row-spell" data-index="${rowIndex}">🔍 맞춤법 교정</button>
                     <button class="btn-inline-action btn-row-regen" data-index="${rowIndex}" ${!isSuccess ? 'style="border-color:var(--accent-red); color:var(--accent-red);"' : ''}>🔄 재생성</button>
                 </div>
             </div>
@@ -685,10 +686,15 @@ function appendResultRow(name, activities, record, rowIndex, isSuccess) {
         }
     });
 
-    // Bind Inline Actions (Copy / Regenerate)
+    // Bind Inline Actions (Copy / Spell Check / Regenerate)
     tr.querySelector('.btn-row-copy').addEventListener('click', (e) => {
         const idx = e.target.getAttribute('data-index');
         copyIndividualRecord(idx, e.target);
+    });
+
+    tr.querySelector('.btn-row-spell').addEventListener('click', (e) => {
+        const idx = e.target.getAttribute('data-index');
+        correctSpelling(idx, e.target);
     });
 
     tr.querySelector('.btn-row-regen').addEventListener('click', (e) => {
@@ -762,6 +768,78 @@ async function regenerateOneRecord(index) {
     } finally {
         regenBtn.disabled = false;
         regenBtn.textContent = "🔄 재생성";
+    }
+}
+
+async function correctSpelling(index, btnElement) {
+    const apiKey = apiKeyInput.value.trim();
+    const selectedModel = modelSelect.value;
+
+    if (!apiKey) { alert("Gemini API Key가 누락되었습니다!"); return; }
+
+    const student = globalResults[index];
+    const editor = document.getElementById(`editor-${index}`);
+    const counter = document.getElementById(`counter-${index}`);
+    
+    if (editor.getAttribute('contenteditable') === 'false' && isGenerating) return;
+
+    // UI Feedback for spell checking
+    editor.setAttribute('contenteditable', 'false');
+    const originalText = editor.innerText.trim();
+    
+    if (!originalText || originalText.startsWith("생성 실패:")) {
+        alert("교정할 문장이 올바르지 않습니다.");
+        editor.setAttribute('contenteditable', 'true');
+        return;
+    }
+
+    btnElement.disabled = true;
+    const originalBtnText = btnElement.textContent;
+    btnElement.textContent = "⏳ 교정 중";
+
+    const promptText = `
+    너는 대한민국 학교생활기록부 기재 요령과 한국어 어문 규정에 정통한 한국어 교정 전문가야.
+    제시된 문장의 맞춤법, 띄어쓰기, 오탈자를 정확히 교정하고 자연스럽게 문맥을 매끄럽게 교정해줘.
+
+    [작성 및 교정 조건]
+    1. 어미 종결 보존: 개조식 종결어미인 '~함.', '~보임.', '~다짐함.', '~노력함.' 등 명사형/개조식 문체를 반드시 그대로 보존할 것 (일반 에세이체나 서술식 어미로 변환 금지).
+    2. 날짜 및 괄호 형식 보존: 문장 내 괄호 안에 날짜가 기재된 부분(예: '(5/15)', '(4/20)')은 절대 수정하거나 생략하지 말고 완벽히 보존할 것.
+    3. 이름 제외 보존: 문장 속에 학생의 이름이나 불필요한 주어가 들어가지 않도록 한 채 교정할 것.
+    4. 의미 변형 금지: 원래 문장이 전하고자 했던 행동 팩트와 탐구 성취 내용을 함부로 변경하거나 임의로 새로운 활동 내용을 덧붙이지 말 것.
+    5. 출력 형식: 교정 내역에 대한 설명, 안내 멘트, 인사말 등을 절대 덧붙이지 말고, 오직 100% 교정이 완료된 문장 결과물만 반환할 것.
+
+    [교정 대상 문장]
+    "${originalText}"
+    `;
+
+    try {
+        const correctedText = await fetchGeminiRecord(apiKey, selectedModel, promptText);
+        
+        // Update states and view
+        student.record = correctedText;
+        editor.innerText = correctedText;
+        counter.textContent = `글자 수: ${correctedText.length}자 (공백포함)`;
+        
+        if (correctedText.length > 500) {
+            counter.classList.add('warning');
+        } else {
+            counter.classList.remove('warning');
+        }
+
+        // Success Feedback
+        btnElement.classList.add('btn-row-spell'); // Ensure spell check color theme applied
+        btnElement.textContent = "✓ 완료";
+        setTimeout(() => {
+            btnElement.textContent = originalBtnText;
+        }, 1500);
+
+    } catch (error) {
+        alert(`맞춤법 교정 실패: ${error.message}`);
+        editor.innerText = originalText;
+        btnElement.textContent = originalBtnText;
+    } finally {
+        btnElement.disabled = false;
+        editor.setAttribute('contenteditable', 'true');
     }
 }
 
