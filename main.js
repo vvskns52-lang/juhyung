@@ -334,6 +334,8 @@ function deleteCustomActivity(index) {
     }
 }
 
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 // ==========================================================================
 // 7. Gemini API Connection & Helpers
 // ==========================================================================
