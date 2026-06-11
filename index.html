@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ AI 생기부 종합 일괄 생성기 (Premium)</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+    <!-- 헤더 영역 -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="logo-area">
+                <span class="logo-emoji">✨</span>
+                <div>
+                    <h1>AI 생기부 종합 일괄 생성기</h1>
+                    <p class="subtitle">선생님의 소중한 시간을 절약하는 스마트한 나이스(NEIS) 맞춤형 도구</p>
+                </div>
+            </div>
+            <button id="theme-toggle" class="theme-toggle-btn" aria-label="테마 전환">
+                <span class="toggle-icon">🌙</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- 1. 정보 및 설정 패널 (좌측) -->
+        <section class="panel panel-input glass">
+            <div class="panel-header">
+                <span class="step-badge">1</span>
+                <h2>정보 및 옵션 설정</h2>
+            </div>
+            
+            <div class="panel-body">
+                <!-- 생기부 카테고리 탭 -->
+                <div class="category-tabs">
+                    <button class="tab-btn active" data-category="autonomous">자율활동</button>
+                    <button class="tab-btn" data-category="subject">과세특</button>
+                    <button class="tab-btn" data-category="behavior">행발</button>
+                </div>
+
+                <!-- API Key 입력 -->
+                <div class="input-group">
+                    <label for="api-key">🔑 Gemini API Key</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="api-key" placeholder="API Key를 입력하세요.">
+                        <button type="button" id="toggle-password-btn" class="icon-btn" title="비밀번호 보기/숨기기">👁️</button>
+                    </div>
+                    <div class="api-action-row">
+                        <button type="button" id="verify-api-btn" class="btn-secondary">API 키 테스트</button>
+                        <label class="save-key-label">
+                            <input type="checkbox" id="save-key-chk" checked> 브라우저에 기억하기
+                        </label>
+                    </div>
+                    <span id="api-status-msg" class="status-msg"></span>
+                </div>
+
+                <!-- 모델 선택 -->
+                <div class="input-group">
+                    <label for="model-select">⚙️ AI 모델 선택</label>
+                    <select id="model-select">
+                        <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (추천 / 초고속 및 안정적)</option>
+                        <option value="gemini-2.5-pro">Gemini 2.5 Pro (높은 문장 완성도 / 속도 보통)</option>
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (구버전 / 기본 성능)</option>
+                        <option value="gemini-flash-latest">Gemini Flash Latest (최신 업데이트 연결)</option>
+                    </select>
+                </div>
+
+                <!-- [동적] 과세특 과목명 입력 필드 -->
+                <div class="input-group hidden" id="subject-name-group">
+                    <label for="subject-name">🧪 대상 교과/과목명</label>
+                    <input type="text" id="subject-name" placeholder="예: 수학, 영어, 통합과학 등">
+                </div>
+
+                <!-- 생성 옵션 조율 -->
+                <div class="options-accordion">
+                    <div class="accordion-header">
+                        <label>📝 생성 옵션 설정</label>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="options-grid">
+                            <div class="option-item">
+                                <label for="length-select">📏 목표 글자 수</label>
+                                <select id="length-select">
+                                    <option value="short">150자 ~ 200자 내외</option>
+                                    <option value="medium" selected>250자 ~ 300자 내외</option>
+                                    <option value="long">400자 ~ 500자 내외</option>
+                                </select>
+                            </div>
+                            <div class="option-item">
+                                <label for="tone-select">🗣️ 어조 스타일</label>
+                                <select id="tone-select">
+                                    <option value="default" selected>표준 개조식 (~함, ~보임)</option>
+                                    <option value="active">적극적 어조 (~하며 능동적으로 동참함)</option>
+                                    <option value="reflective">자기 성찰형 (~하며 자신을 돌아봄)</option>
+                                    <option value="cooperative">협동/배려형 (~하여 타인을 돕는 태도 보임)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="option-item full-width" style="margin-top: 12px;">
+                            <label for="custom-prompt">💡 추가 강조 내용 (선택사항)</label>
+                            <input type="text" id="custom-prompt" placeholder="예: '주도성을 보여줌', '진로와의 연관성 강조'">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 학생 명단 입력 -->
+                <div class="input-group">
+                    <label for="student-names">🧑‍🎓 학생 명단 <span class="label-info">(줄바꿈으로 구분)</span></label>
+                    <textarea id="student-names" class="name-list" placeholder="강진서&#10;김수하&#10;김은호&#10;(엑셀에서 이름을 복사해서 붙여넣으셔도 됩니다)"></textarea>
+                    <span id="student-count" class="count-badge">학생 수: 0명</span>
+                </div>
+
+                <!-- [동적] 활동 및 인성 특성 풀 선택 -->
+                <div class="input-group">
+                    <label id="activity-pool-label">✅ 활동 풀(Pool) 선택 <span class="label-info">(학생별 랜덤 배정용)</span></label>
+                    <div class="add-custom-box">
+                        <input type="text" id="custom-activity" placeholder="예: 학급 자치활동 (5/12)">
+                        <button class="btn-add" id="add-activity-btn">+ 추가</button>
+                    </div>
+                    
+                    <div class="checkbox-grid" id="checkbox-grid"></div>
+                    <span class="highlight-notice" id="pool-notice-msg">* 다양하고 조화로운 배정을 위해 활동을 4개 이상 등록하는 것을 권장합니다.</span>
+                </div>
+
+                <button class="btn-generate" id="generate-btn">🤖 명단 일괄 생성 시작</button>
+            </div>
+        </section>
+
+        <!-- 2. 실시간 생성 결과 패널 (우측) -->
+        <section class="panel panel-result glass">
+            <div class="panel-header">
+                <span class="step-badge">2</span>
+                <h2>실시간 생성 결과</h2>
+                <span id="progress-percent" class="progress-badge">0% 완료</span>
+            </div>
+
+            <!-- 프로그레스 바 영역 -->
+            <div class="progress-container hidden" id="progress-container">
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                </div>
+                <div class="progress-status" id="progress-status">준비 중...</div>
+            </div>
+
+            <div class="panel-body flex-column">
+                <div class="table-container">
+                    <table id="result-table">
+                        <thead>
+                            <tr>
+                                <th class="col-name">이름</th>
+                                <th id="table-result-header">배정된 활동 및 자율활동 특기사항 (더블클릭하여 직접 수정 가능)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="result-tbody">
+                            <tr>
+                                <td colspan="2" class="empty-state">
+                                    <div class="empty-icon">📊</div>
+                                    <p>생성 버튼을 누르면 실시간으로 결과가 이곳에 채워집니다.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="action-footer">
+                    <button class="btn-copy-all" id="copy-all-btn">📋 전체 클립보드 복사</button>
+                    <button class="btn-excel" id="export-excel-btn">📊 엑셀(CSV) 파일로 다운로드</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="main-footer">
+        <p>© 2026 AI School Assistant. All rights reserved. 본 서비스는 클라이언트 브라우저 내에서만 안전하게 실행되며, 사용자의 API 키 및 학생 데이터는 외부 서버에 절대 저장되지 않습니다.</p>
+    </footer>
+
+    <script src="./main.js"></script>
+</body>
+</html>
