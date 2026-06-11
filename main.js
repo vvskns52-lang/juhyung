@@ -146,6 +146,17 @@ window.onload = function() {
     // Action Buttons
     copyAllBtn.addEventListener('click', copyAllToClipboard);
     exportExcelBtn.addEventListener('click', exportToExcel);
+
+    // API Help Modal Bindings
+    const helpBtn = document.getElementById('api-help-btn');
+    const helpModal = document.getElementById('help-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    
+    helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
+    closeModalBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
+    helpModal.addEventListener('click', (e) => {
+        if (e.target === helpModal) helpModal.classList.add('hidden');
+    });
 };
 
 // Toggle API key visibility
@@ -393,16 +404,16 @@ function buildPrompt(studentName, activities, tone, length, customPrompt) {
     let toneGuide = "";
     switch(tone) {
         case "active":
-            toneGuide = "학생의 주도성, 적극성 및 문제 해결 의지가 확실히 드러나도록 하며 행동 지향적인 서술(~에 기여함, 앞장서서 실천함, 자기주도적으로 학습함 등)을 반영할 것.";
+            toneGuide = "학생의 주도성, 적극성 및 실질적 문제 해결 행동이 팩트 기반으로 드러나도록 하며, 행동 지향적인 서술(~에 기여함, 앞장서서 실천함, 자기주도적으로 탐구하여 성과를 냄 등)을 반영할 것.";
             break;
         case "reflective":
-            toneGuide = "활동을 배우고 분석하며 자신을 성찰하는 내면의 학구적/인성적 태도가 드러나도록 할 것(~의 가치를 깨달음, 스스로의 한계를 극복함, 성찰을 통해 성장함 등).";
+            toneGuide = "활동 과정에서 보여준 집중도, 탐구적 성향 및 차분하게 내실을 기하는 학습 태도가 드러나도록 할 것(~의 개념을 분석하여 기록함, 오류 원인을 분석해 피드백을 실천함 등).";
             break;
         case "cooperative":
-            toneGuide = "협동심, 의사소통, 배려 및 학급 공동체 기여를 중점적으로 묘사할 것(~에 적극 협조하여 반 분위기를 주도함, 타인의 의견을 경청하고 조율함, 협동하여 난관을 극복함 등).";
+            toneGuide = "급우들과 소통하고 조력한 구체적 상황을 묘사할 것(~의 과정에서 의견을 조율하여 완성함, 모둠 활동 시 역할을 세분화하여 협력함 등).";
             break;
         default:
-            toneGuide = "학생 행동 사실 위주로 담담하고 객관적인 제3자적 관찰자 뉘앙스로 작성할 것.";
+            toneGuide = "행동 및 학습 사실 위주로 건조하고 객관적인 제3자적 관찰자 뉘앙스로 작성할 것.";
     }
 
     // Length guide mapping
@@ -412,10 +423,10 @@ function buildPrompt(studentName, activities, tone, length, customPrompt) {
             lengthGuide = "공백 포함 150자 ~ 200자 내외로 매우 짧고 간결하게 핵심 팩트 위주로 작성할 것.";
             break;
         case "long":
-            lengthGuide = "공백 포함 400자 ~ 480자 내외로 세밀한 정황 묘사와 관찰 내용, 향후 성장 가능성까지 풍부하게 작성할 것.";
+            lengthGuide = "공백 포함 400자 ~ 480자 내외로 세밀한 활동 내용과 관찰된 변화상까지 풍부하게 작성할 것.";
             break;
         default:
-            lengthGuide = "공백 포함 250자 ~ 300자 내외로 팩트와 태도의 균형을 맞춰 표준적으로 작성할 것.";
+            lengthGuide = "공백 포함 250자 ~ 300자 내외로 사실과 태도의 균형을 맞춰 표준적으로 작성할 것.";
     }
 
     let customGuide = customPrompt ? `[추가 지시사항] 특히 다음 문구를 반영하거나 뉘앙스를 녹여줘: "${customPrompt}"` : "";
@@ -447,25 +458,28 @@ function buildPrompt(studentName, activities, tone, length, customPrompt) {
 
     return `
     너는 대한민국 중학교/고등학교의 전문적이고 통찰력 있는 담임 교사 및 교과 담당 교사야.
-    아래 주어진 학생의 이름과 배정된 구체적 행동 및 활동 기록을 종합하여, 생활기록부에 기재할 수 있는 법적 기준에 맞는 ${categoryGoal}을 한 문단으로 작성해줘.
+    아래 주어진 정보와 배정된 구체적 행동 및 활동 기록을 종합하여, 생활기록부에 기재할 수 있는 법적 기준에 맞는 ${categoryGoal}을 한 문단으로 작성해줘.
 
     [작성 대상 정보]
-    - 학생 이름: ${studentName}
     - 배정된 활동/관찰 내역: ${activities.join(", ")}
     ${systemInstruction}
 
     [필수 규칙 조건]
-    1. 문맥과 어조:
+    1. 주어 및 학생 이름 완전 배제:
+       - **중요**: 문장 본문 속에 학생의 이름(예: "${studentName}", "이름", "학생" 등)을 단 한 번도 사용하지 말 것. 
+       - 문장을 시작할 때 이름을 생략하고, 바로 구체적인 행동 사실(예: '~에 참여하여', '~를 스스로 탐구하여')로 자연스럽게 시작할 것.
+    2. 철저한 팩트 중심 및 추상적 어휘 배제:
+       - '우수함', '뛰어남', '기대됨', '발휘함', '창의적임', '잠재력', '뛰어난 리더십', '훌륭함' 등의 주관적이고 추상적인 찬사나 뻔한 미사여구는 철저히 배제할 것.
+       - 오직 학생이 활동에서 수행한 구체적인 행위 팩트(예: 수행평가 주제로 무엇을 발표함, 어떤 보고서를 작성함, 친구들의 의견을 어떻게 조율함 등)와 그에 따른 구체적 변화 양상만을 건조하고 객관적으로 서술할 것.
+    3. 문맥과 어조:
        - ${toneGuide}
        - 어미 종결은 반드시 대한민국 NEIS 기재 규격에 맞춰 개조식 종결어미인 '~함.', '~보임.', '~다짐함.', '~노력함.', '~기여함.' 등으로 통일할 것 (존댓말이나 에세이체 절대 금지).
-    2. 분량 및 가독성:
+    4. 분량 및 가독성:
        - ${lengthGuide}
-    3. 세부 규격:
-       - 글 속에서 각 활동을 직접적으로 언급할 때는 제공된 원본 날짜를 그대로 괄호 안에 병기할 것 (예: "결과 보고서 작성(4/18)", 단 날짜가 없는 활동은 날짜 병기 생략).
-       - 학생의 이름을 글에 자연스럽게 1~2회 언급하되, 문장의 주어를 다듬어 가독성을 높일 것.
-       - 지나치게 감정적이거나 주관적인 찬사('매우 우수함', '세계적 리더가 될 것임')는 지양하고 관찰 사실과 학생의 태도 및 성장 내용을 심플하고 공정하게 결합할 것.
+    5. 세부 규격:
+       - ${dateRule}
        - ${customGuide}
-    4. 출력 형식:
+    6. 출력 형식:
        - 어떠한 인사말이나 서론, 부연설명도 절대 포함하지 말고, 오직 바로 생기부에 복사하여 붙여넣을 수 있는 완성된 텍스트 결과만 출력할 것.
     `;
 }

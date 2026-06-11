@@ -46,7 +46,10 @@
 
                 <!-- API Key 입력 -->
                 <div class="input-group">
-                    <label for="api-key">🔑 Gemini API Key</label>
+                    <div class="label-row">
+                        <label for="api-key">🔑 Gemini API Key</label>
+                        <button type="button" id="api-help-btn" class="help-btn" title="API Key 발급 방법 보기">ℹ️ 발급 방법 안내</button>
+                    </div>
                     <div class="password-wrapper">
                         <input type="password" id="api-key" placeholder="API Key를 입력하세요.">
                         <button type="button" id="toggle-password-btn" class="icon-btn" title="비밀번호 보기/숨기기">👁️</button>
@@ -180,6 +183,29 @@
     <footer class="main-footer">
         <p>© 2026 AI School Assistant. All rights reserved. 본 서비스는 클라이언트 브라우저 내에서만 안전하게 실행되며, 사용자의 API 키 및 학생 데이터는 외부 서버에 절대 저장되지 않습니다.</p>
     </footer>
+
+    <!-- API Key 발급 안내 모달 -->
+    <div id="help-modal" class="modal-overlay hidden">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3>🔑 Gemini API Key 발급 방법</h3>
+                <button type="button" id="close-modal-btn" class="close-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <ol>
+                    <li>구글 계정으로 로그인한 상태에서 <strong><a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer">Google AI Studio</a></strong> 웹사이트에 접속합니다.</li>
+                    <li>화면 왼쪽 위의 <strong>[Get API key]</strong> 버튼(또는 중앙의 파란색 버튼)을 클릭합니다.</li>
+                    <li><strong>[Create API key]</strong> 버튼을 누릅니다.</li>
+                    <li>안내 창이 뜨면 <strong>[Create API key in new project]</strong>를 선택합니다.</li>
+                    <li>완료 후 화면에 나타나는 긴 문자열(AIzaSy로 시작함)을 <strong>[Copy]</strong>하여 복사한 뒤, 이 생성기의 API Key 입력란에 붙여넣습니다.</li>
+                </ol>
+                <div class="modal-note">
+                    <p>⚠️ <strong>보안 및 비용 안내:</strong></p>
+                    <p>발급된 API Key는 개인 비밀번호와 같으므로 외부에 유출되지 않도록 주의해 주세요. (개인용 무료 플랜 기준 하루 1,500회 호출이 무료로 보장되어 요금이 청구되지 않습니다.)</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="./main.js"></script>
 </body>
