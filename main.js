@@ -2,42 +2,27 @@
 // 1. Initial State, Default Data & Configuration
 // ==========================================================================
 const defaultAutonomousActivities = [
-    "학급 임원 활동 (1학기)",
-    "학교폭력예방교육 (3/16)",
-    "장애이해교육 (4/20)",
-    "감사의 날 (5/6)",
-    "학급별 특색활동 (5/26)",
-    "학급자치회의 (4/10)"
+    "#학급임원(1학기)", "#학급자치회의(4/10)", "#교실환경미화(5/12)", "#학교폭력예방교육(3/16)",
+    "#장애이해교육(4/20)", "#감사의날편지(5/6)", "#축제응원단(5/15)", "#소방대피훈련(6/12)",
+    "#양성평등교육(6/25)", "#민주시민토론", "#진로직업체험", "#금연캠페인",
+    "#다문화이해활동", "#사이버안전교육", "#학급특색활동", "#생명존중교육",
+    "#체육대회계주", "#환경보호글쓰기", "#어버이날효도일지", "#인성역량워크숍"
 ];
 
 const defaultSubjectActivities = [
-    "교과 연계 실생활 문제 해결을 위한 수학적·과학적 모델링 탐구",
-    "수업 주제와 자신의 진로 분야를 연결한 심화 주제 발표 및 탐구 보고서 작성",
-    "수업 내용 중 의문점을 해결하기 위한 추가 자료 조사 및 비판적 분석 일지 작성",
-    "어려운 개념의 이해를 돕기 위해 실생활 비유를 들어 친구들에게 설명하는 배움 나눔 활동",
-    "교과 연계 도서 탐독 후 핵심 개념을 시사 이슈와 결합하여 분석하는 비평 보고서 제출",
-    "모둠 협력 프로젝트에서 갈등을 중재하고 핵심 아이디어를 도출하여 결과물을 완성하는 기여",
-    "학습 내용에 대한 오개념을 수정하는 메타인지적 오답 원인 분석 및 피드백 활동",
-    "교과서 내부 증명/실험 과정을 시각 자료 및 프로그램을 활용해 직접 재현하고 발표",
-    "제시된 원리에 대해 다른 시각에서 의문을 던지고 대안적 해결 방안을 논리적으로 제시",
-    "교과학습 멘토로서 배움이 다소 느린 친구를 이해하기 쉽게 도와주며 동반 성장하는 협력 태도",
-    "수업 참여도와 연계하여 매 차시 배운 개념을 자신만의 마인드맵 및 개념도로 구조화 정리",
-    "교과 수행평가 피드백을 수용하여 탐구 범위를 심화 단계까지 넓힌 자율 탐구 일지 작성"
+    "#수학적모델링", "#과학적원리실험", "#진로연계심화발표", "#탐구보고서작성",
+    "#비판적도서비평", "#시사이슈분석보고", "#마인드맵개념구조화", "#오답원인메타인지",
+    "#배움나눔멘토링", "#대안적문제풀이", "#프로그램구현", "#실험설계및관찰",
+    "#추가자료분석", "#질문중심배움일지", "#교과피드백수용", "#주제탐구포스터",
+    "#원리시각화발표", "#오류교정워크북", "#교과어휘개념학습", "#심층주제토론"
 ];
 
 const defaultBehaviorActivities = [
-    "학급 내 궂은일과 환경 미화에 솔선수범하며 쾌적한 학습 환경 조성에 성실하게 기여함",
-    "모둠 활동 시 다양한 의견을 조화롭게 조율하고 배려심 있는 소통으로 협력을 이끌어냄",
-    "배움이 느리거나 소외된 급우에게 눈높이를 맞추어 차분하게 학습을 돕는 따뜻한 품성",
-    "학급 자치 규칙을 철저히 모범적으로 준수하며 매사 신뢰를 주는 성실하고 올곧은 태도",
-    "학급 공동 행사나 체육대회 시 긍정적인 활력으로 단합을 도모하고 급우들의 적극적 참여를 유도함",
-    "예의 바른 자세와 경청의 태도를 갖추어 선생님 및 학급원들과 높은 신뢰 관계를 형성함",
-    "사소한 시간 약속과 마감 기한을 철저히 지키며 높은 책임감과 신용도를 보여줌",
-    "학급 자치 회의에서 타인의 감정을 존중하고 민주적으로 갈등을 평화롭게 조율함",
-    "자신의 부족한 점을 성찰하고 이를 극복하기 위해 학습 플래너 작성 등 주도적으로 생활 태도를 개선함",
-    "급우들의 고민이나 어려움을 차분하게 경청하고 깊이 공감해 주며 정서적인 리더십을 발휘함",
-    "학급 도서 및 기자재 관리 등 보이지 않는 곳에서 학급의 편의를 위해 지속적으로 봉사함",
-    "자기 조절 능력이 뛰어나며 차분하고 진중한 성품으로 학급의 안정적인 분위기 형성에 기여함"
+    "#솔선수범정화", "#갈등평화조율", "#학습멘토링배려", "#자치규칙준수",
+    "#단합적극유도", "#예의바른경청", "#약속마감엄수", "#타인감정존중",
+    "#플래너자기성찰", "#고민경청공감", "#지속적봉사", "#학급안정기여",
+    "#정서적리더십", "#성실성인정", "#학습태도개선", "#비품선도관리",
+    "#배움나눔실천", "#급우협동지원", "#자기조절우수", "#성실책임완수"
 ];
 
 // Active Category State: 'autonomous' | 'subject' | 'behavior'
@@ -496,6 +481,47 @@ function deleteCustomActivity(index) {
     }
 }
 
+// 실제 NEIS 기준 바이트 계산 알고리즘
+function getNeisBytes(text) {
+    if (!text) return 0;
+    let bytes = 0;
+    for (let i = 0; i < text.length; i++) {
+        const char = text.charCodeAt(i);
+        if (char === 10) { // 줄바꿈
+            bytes += 2;
+        } else if (char <= 127) { // 반각 영문/숫자/스페이스 등
+            bytes += 1;
+        } else { // 전각 한글/한자 등
+            bytes += 3;
+        }
+    }
+    return bytes;
+}
+
+// NEIS 기재 금지어 실시간 필터 검출기
+function checkForbiddenWords(text) {
+    if (!text) return [];
+    
+    // 생활기록부 대표 기재 금지어 목록
+    const forbiddenList = [
+        "TOEIC", "토익", "TOEFL", "토플", "TEPS", "텝스", "HSK", "JLPT", "PELT", 
+        "경시대회", "올림피아드", "대회", "수상", "상장", "1등", "2등", "3등", "우수상", 
+        "부모", "아버지", "어머니", "아빠", "엄마", "친척", "할아버지", "할머니",
+        "교수", "의사", "검사", "판사", "변호사", "회장님", "사장님", "기업대표",
+        "학원", "과외", "모의고사", "셀프생기부", "셀프 작성", "논문", "저서", "특허", "학회지"
+    ];
+    
+    const found = [];
+    forbiddenList.forEach(word => {
+        const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escaped, 'gi');
+        if (regex.test(text)) {
+            found.push(word);
+        }
+    });
+    return found;
+}
+
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 // ==========================================================================
@@ -656,8 +682,9 @@ function buildPrompt(studentName, activities, tone, length, customPrompt) {
        - ${dateRule}
        - ${customGuide}
        ${tuningGuide}
-    6. 출력 형식:
-       - 어떠한 인사말이나 서론, 부연설명도 절대 포함하지 말고, 오직 바로 생기부에 복사하여 붙여넣을 수 있는 완성된 텍스트 결과만 출력할 것.
+    6. 출력 형식 및 역량 해시태그 추출:
+       - 어떠한 인사말이나 서론, 부연설명도 절대 포함하지 마십시오.
+       - **중요**: 문단 본문 작성을 완전히 마친 뒤, 맨 마지막 줄에 한 번 개행(\\n)을 하고 다음 형식을 엄격히 준수하여 학생에게 가장 부합하는 핵심역량 해시태그 3개를 괄호 형태로 반드시 출력하십시오: ` + "`[역량키워드: #키워드1, #키워드2, #키워드3]`" + ` (예: [역량키워드: #수학적모델링, #주도성, #배움나눔]). 이 외의 설명글은 절대 덧붙이지 마십시오.
     `;
 }
 
@@ -819,25 +846,56 @@ async function generateBatchRecords() {
 // ==========================================================================
 // 9. Result Table Row Builders & Event Bindings
 // ==========================================================================
-function appendResultRow(name, activities, record, rowIndex, isSuccess) {
+function appendResultRow(name, activities, recordText, rowIndex, isSuccess) {
     // If it is the first row, clear empty placeholder
     const firstRow = resultTbody.querySelector('.empty-state');
     if (firstRow) {
         resultTbody.innerHTML = '';
     }
 
+    // AI 결과 텍스트에서 [역량키워드: ...] 부분 파싱 및 추출
+    let extractedKeywords = [];
+    let cleanRecordText = recordText;
+    const keywordRegex = /\[역량키워드:\s*(#[^\]]+)\]/i;
+    const match = recordText.match(keywordRegex);
+    if (match) {
+        extractedKeywords = match[1].split(',').map(k => k.trim()).filter(k => k !== '');
+        cleanRecordText = recordText.replace(keywordRegex, '').trim();
+    }
+    
+    // 본문용 텍스트 동기화
+    globalResults[rowIndex].record = cleanRecordText;
+
     const tr = document.createElement('tr');
     tr.id = `row-${rowIndex}`;
 
     const tagsHTML = activities.map(act => `<span class="tag">${act}</span>`).join('');
     
+    // 파싱된 키워드 해시태그 HTML 빌드
+    const keywordsHTML = extractedKeywords.map(k => `<span class="extracted-keyword-badge">${k}</span>`).join('');
+
     tr.innerHTML = `
         <td class="col-name">${name}</td>
         <td>
             <div class="tags-wrapper">${tagsHTML}</div>
-            <div class="record-editor-grid" contenteditable="${isSuccess}" id="editor-${rowIndex}">${record}</div>
+            <div class="extracted-keywords-wrapper" id="keywords-wrapper-${rowIndex}">
+                ${keywordsHTML || '<span style="color:var(--text-muted); font-size:0.72rem; font-style:italic;">💡 AI가 추출한 핵심 역량이 여기에 표시됩니다.</span>'}
+            </div>
+            <div class="record-editor-grid" contenteditable="${isSuccess}" id="editor-${rowIndex}">${cleanRecordText}</div>
+            
+            <!-- 실시간 기재 금지어 경고 배지 -->
+            <div class="forbidden-warning-badge hidden" id="forbidden-badge-${rowIndex}">
+                ⚠️ NEIS 기재 금지어 검출: <span id="forbidden-words-${rowIndex}" style="text-decoration:underline;"></span>
+            </div>
+            
             <div class="row-action-bar">
-                <span class="char-counter" id="counter-${rowIndex}">글자 수: ${record.length}자 (공백포함)</span>
+                <!-- 바이트 게이지바 UI -->
+                <div class="byte-counter-wrapper">
+                    <span class="byte-text" id="byte-txt-${rowIndex}">0 / 1500 Byte</span>
+                    <div class="byte-gauge-container">
+                        <div class="byte-gauge-fill" id="byte-fill-${rowIndex}"></div>
+                    </div>
+                </div>
                 <div class="row-actions">
                     <button class="btn-inline-action btn-row-copy" data-index="${rowIndex}">📋 복사</button>
                     <div class="action-wrapper">
@@ -849,20 +907,13 @@ function appendResultRow(name, activities, record, rowIndex, isSuccess) {
         </td>
     `;
 
-    // Bind Character counter listener
     const editor = tr.querySelector('.record-editor-grid');
-    const counter = tr.querySelector('.char-counter');
     
+    // 실시간 바이트 및 금지어 피드백 갱신 바인딩
     editor.addEventListener('input', () => {
         const text = editor.innerText;
         globalResults[rowIndex].record = text; // sync text changes
-        counter.textContent = `글자 수: ${text.length}자 (공백포함)`;
-        if (text.length > 500) {
-            counter.classList.add('warning');
-            counter.textContent += ` ⚠️ NEIS 한도 초과 위험`;
-        } else {
-            counter.classList.remove('warning');
-        }
+        updateRecordFeedback(rowIndex, text);
     });
 
     // Bind Inline Actions (Copy / Spell Check / Regenerate)
@@ -883,6 +934,51 @@ function appendResultRow(name, activities, record, rowIndex, isSuccess) {
     });
 
     resultTbody.appendChild(tr);
+    
+    // 초기 피드백 렌더링 호출
+    updateRecordFeedback(rowIndex, cleanRecordText);
+}
+
+// 실시간 바이트 수, 게이지바 및 금지어 검증 피드백 갱신 로직
+function updateRecordFeedback(rowIndex, text) {
+    const byteTxt = document.getElementById(`byte-txt-${rowIndex}`);
+    const byteFill = document.getElementById(`byte-fill-${rowIndex}`);
+    const forbiddenBadge = document.getElementById(`forbidden-badge-${rowIndex}`);
+    const forbiddenWordsSpan = document.getElementById(`forbidden-words-${rowIndex}`);
+    
+    if (!byteTxt || !byteFill) return;
+    
+    // 1. NEIS 기준 바이트 계산 및 표시
+    const currentBytes = getNeisBytes(text);
+    const maxBytes = 1500; // NEIS 입력 한도 기준값
+    byteTxt.textContent = `글자 수: ${text.length}자 (${currentBytes} / ${maxBytes} Byte)`;
+    
+    // 게이지 비율 계산
+    const percent = Math.min((currentBytes / maxBytes) * 100, 100);
+    byteFill.style.width = `${percent}%`;
+    
+    // 바이트 용량에 따른 게이지바 색상 등급 설정
+    byteFill.classList.remove('warning', 'danger');
+    byteTxt.style.color = "var(--text-secondary)";
+    
+    if (currentBytes >= maxBytes) {
+        byteFill.classList.add('danger');
+        byteTxt.style.color = "var(--accent-red)";
+        byteTxt.textContent += " ⚠️ NEIS 한도 초과!";
+    } else if (currentBytes >= maxBytes * 0.85) {
+        byteFill.classList.add('warning');
+        byteTxt.style.color = "#f59e0b";
+        byteTxt.textContent += " ⚠️ NEIS 마감 임박";
+    }
+    
+    // 2. 기재 금지어 실시간 필터 검증
+    const forbiddenList = checkForbiddenWords(text);
+    if (forbiddenList.length > 0) {
+        forbiddenWordsSpan.textContent = forbiddenList.join(', ');
+        forbiddenBadge.classList.remove('hidden');
+    } else {
+        forbiddenBadge.classList.add('hidden');
+    }
 }
 
 // AI 윤문 선택 팝오버 메뉴 생성 및 띄우기
@@ -945,7 +1041,6 @@ async function regenerateOneRecord(index) {
     
     const student = globalResults[index];
     const editor = document.getElementById(`editor-${index}`);
-    const counter = document.getElementById(`counter-${index}`);
     const regenBtn = document.querySelector(`#row-${index} .btn-row-regen`);
     
     if (editor.getAttribute('contenteditable') === 'false' && isGenerating) return;
@@ -962,17 +1057,36 @@ async function regenerateOneRecord(index) {
     try {
         const recordText = await fetchGeminiRecord(apiKey, selectedModel, promptText);
         
+        // AI 결과 텍스트에서 [역량키워드: ...] 부분 파싱 및 추출
+        let extractedKeywords = [];
+        let cleanRecordText = recordText;
+        const keywordRegex = /\[역량키워드:\s*(#[^\]]+)\]/i;
+        const match = recordText.match(keywordRegex);
+        if (match) {
+            extractedKeywords = match[1].split(',').map(k => k.trim()).filter(k => k !== '');
+            cleanRecordText = recordText.replace(keywordRegex, '').trim();
+        }
+        
         // Update states and view
-        student.record = recordText;
-        editor.innerText = recordText;
+        student.record = cleanRecordText;
+        editor.innerText = cleanRecordText;
         editor.setAttribute('contenteditable', 'true');
-        counter.textContent = `글자 수: ${recordText.length}자 (공백포함)`;
-        counter.classList.remove('warning');
+        
+        // 키워드 배지 영역 업데이트
+        const kwWrapper = document.getElementById(`keywords-wrapper-${index}`);
+        if (kwWrapper) {
+            kwWrapper.innerHTML = extractedKeywords.map(k => `<span class="extracted-keyword-badge">${k}</span>`).join('') || 
+                '<span style="color:var(--text-muted); font-size:0.72rem; font-style:italic;">💡 AI가 추출한 핵심 역량이 여기에 표시됩니다.</span>';
+        }
+        
+        // 피드백 갱신 호출
+        updateRecordFeedback(index, cleanRecordText);
         
     } catch (error) {
         alert(`재생성 실패: ${error.message}`);
         editor.innerText = originalText;
         editor.setAttribute('contenteditable', 'true');
+        updateRecordFeedback(index, originalText);
     } finally {
         regenBtn.disabled = false;
         regenBtn.textContent = "🔄 재생성";
@@ -987,7 +1101,6 @@ async function rewriteSentence(index, mode, btnElement) {
 
     const student = globalResults[index];
     const editor = document.getElementById(`editor-${index}`);
-    const counter = document.getElementById(`counter-${index}`);
     
     if (editor.getAttribute('contenteditable') === 'false' && isGenerating) return;
 
@@ -1029,6 +1142,7 @@ async function rewriteSentence(index, mode, btnElement) {
     3. 날짜 및 형식 보존: 문장 속 괄호 날짜(예: '(5/15)') 및 팩트 항목은 절대 생략하거나 임의로 다른 날짜로 바꾸지 말 것.
     4. 이름 제외 보존: 문장 본문 내에 학생의 이름이나 주어(예: '이 학생은', '그는')가 노출되지 않아야 함.
     5. 출력 형식: 윤문된 최종 텍스트 결과물만 출력해야 하며, 설명이나 앞뒤 인사는 절대 포함하지 마십시오.
+       **매우 중요**: 문단 작성 완료 후, 반드시 맨 끝에 개행을 하고 핵심역량 해시태그 3개를 괄호 형태로 첨부해주십시오: ` + "`[역량키워드: #키워드1, #키워드2, #키워드3]`" + `
 
     [대상 문장]
     "${originalText}"
@@ -1037,16 +1151,29 @@ async function rewriteSentence(index, mode, btnElement) {
     try {
         const correctedText = await fetchGeminiRecord(apiKey, selectedModel, promptText);
         
-        // Update states and view
-        student.record = correctedText;
-        editor.innerText = correctedText;
-        counter.textContent = `글자 수: ${correctedText.length}자 (공백포함)`;
-        
-        if (correctedText.length > 500) {
-            counter.classList.add('warning');
-        } else {
-            counter.classList.remove('warning');
+        // AI 결과 텍스트에서 [역량키워드: ...] 부분 파싱 및 추출
+        let extractedKeywords = [];
+        let cleanCorrectedText = correctedText;
+        const keywordRegex = /\[역량키워드:\s*(#[^\]]+)\]/i;
+        const match = correctedText.match(keywordRegex);
+        if (match) {
+            extractedKeywords = match[1].split(',').map(k => k.trim()).filter(k => k !== '');
+            cleanCorrectedText = correctedText.replace(keywordRegex, '').trim();
         }
+        
+        // Update states and view
+        student.record = cleanCorrectedText;
+        editor.innerText = cleanCorrectedText;
+        
+        // 키워드 배지 영역 업데이트
+        const kwWrapper = document.getElementById(`keywords-wrapper-${index}`);
+        if (kwWrapper) {
+            kwWrapper.innerHTML = extractedKeywords.map(k => `<span class="extracted-keyword-badge">${k}</span>`).join('') || 
+                '<span style="color:var(--text-muted); font-size:0.72rem; font-style:italic;">💡 AI가 추출한 핵심 역량이 여기에 표시됩니다.</span>';
+        }
+        
+        // 피드백 갱신 호출
+        updateRecordFeedback(index, cleanCorrectedText);
 
         // Success Feedback
         btnElement.textContent = "✓ 완료";
@@ -1058,6 +1185,7 @@ async function rewriteSentence(index, mode, btnElement) {
         alert(`AI 윤문 가동 실패: ${error.message}`);
         editor.innerText = originalText;
         btnElement.textContent = originalBtnText;
+        updateRecordFeedback(index, originalText);
     } finally {
         btnElement.disabled = false;
         editor.setAttribute('contenteditable', 'true');
@@ -1170,17 +1298,7 @@ function replaceAllTexts() {
             const editor = document.getElementById(`editor-${index}`);
             if (editor) {
                 editor.innerText = updatedRecord;
-                
-                // 캐릭터 카운터 업데이트
-                const counter = document.getElementById(`counter-${index}`);
-                if (counter) {
-                    counter.textContent = `글자 수: ${updatedRecord.length}자 (공백포함)`;
-                    if (updatedRecord.length > 500) {
-                        counter.classList.add('warning');
-                    } else {
-                        counter.classList.remove('warning');
-                    }
-                }
+                updateRecordFeedback(index, updatedRecord);
             }
         }
     });

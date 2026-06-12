@@ -1506,3 +1506,92 @@ tr:hover td {
     padding: 80px 20px;
     color: var(--text-muted);
 }
+
+/* ==========================================================================
+   11. Premium Sub-Systems (Byte Gauge, Forbidden Words, AI Keywords)
+   ========================================================================== */
+
+/* NEIS 바이트 계산 게이지 */
+.byte-counter-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 190px;
+}
+
+.byte-text {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+.byte-gauge-container {
+    height: 6px;
+    background-color: var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.byte-gauge-fill {
+    height: 100%;
+    width: 0%;
+    background-color: var(--accent-blue);
+    border-radius: 3px;
+    transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+.byte-gauge-fill.warning {
+    background-color: #f59e0b; /* 주황 */
+}
+
+.byte-gauge-fill.danger {
+    background-color: var(--accent-red); /* 빨강 */
+}
+
+/* 기재 금지어 경고 배지 */
+.forbidden-warning-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-top: 8px;
+    animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+/* AI 추출 해시태그 배지 */
+.extracted-keywords-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding: 8px;
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1.5px dashed var(--border-color);
+    min-height: 38px;
+    align-items: center;
+}
+
+.extracted-keyword-badge {
+    background: linear-gradient(135deg, var(--accent-blue-light) 0%, rgba(168, 85, 247, 0.1) 100%);
+    color: var(--accent-blue);
+    border: 1.5px solid rgba(59, 130, 246, 0.3);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
