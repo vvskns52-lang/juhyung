@@ -919,10 +919,10 @@ function appendResultRow(name, activities, recordText, rowIndex, isSuccess) {
         resultTbody.innerHTML = '';
     }
 
-    // AI 결과 텍스트에서 [역량키워드/핵심역량/핵심 역량: ...] 부분 파싱 및 추출 (다양한 변종 대응)
+    // AI 결과 텍스트에서 역량/키워드 관련 괄호 부분 파싱 및 추출 (콜론이 없거나 다양한 변칭 대응)
     let extractedKeywords = [];
     let cleanRecordText = recordText;
-    const keywordRegex = /\[(?:역량키워드|핵심역량|핵심\s*역량|역량\s*키워드):\s*([^\]]+)\]/i;
+    const keywordRegex = /\[(?:역량|키워드|태그)[^\]]*[:\s]+([^\]]+)\]/i;
     const match = recordText.match(keywordRegex);
     if (match) {
         extractedKeywords = match[1].split(',')
@@ -1126,10 +1126,10 @@ async function regenerateOneRecord(index) {
     try {
         const recordText = await fetchGeminiRecord(apiKey, selectedModel, promptText);
         
-        // AI 결과 텍스트에서 [역량키워드/핵심역량/핵심 역량: ...] 부분 파싱 및 추출 (다양한 변종 대응)
+        // AI 결과 텍스트에서 역량/키워드 관련 괄호 부분 파싱 및 추출 (콜론이 없거나 다양한 변칭 대응)
         let extractedKeywords = [];
         let cleanRecordText = recordText;
-        const keywordRegex = /\[(?:역량키워드|핵심역량|핵심\s*역량|역량\s*키워드):\s*([^\]]+)\]/i;
+        const keywordRegex = /\[(?:역량|키워드|태그)[^\]]*[:\s]+([^\]]+)\]/i;
         const match = recordText.match(keywordRegex);
         if (match) {
             extractedKeywords = match[1].split(',')
@@ -1222,10 +1222,10 @@ async function rewriteSentence(index, mode, btnElement) {
     try {
         const correctedText = await fetchGeminiRecord(apiKey, selectedModel, promptText);
         
-        // AI 결과 텍스트에서 [역량키워드/핵심역량/핵심 역량: ...] 부분 파싱 및 추출 (다양한 변종 대응)
+        // AI 결과 텍스트에서 역량/키워드 관련 괄호 부분 파싱 및 추출 (콜론이 없거나 다양한 변칭 대응)
         let extractedKeywords = [];
         let cleanCorrectedText = correctedText;
-        const keywordRegex = /\[(?:역량키워드|핵심역량|핵심\s*역량|역량\s*키워드):\s*([^\]]+)\]/i;
+        const keywordRegex = /\[(?:역량|키워드|태그)[^\]]*[:\s]+([^\]]+)\]/i;
         const match = correctedText.match(keywordRegex);
         if (match) {
             extractedKeywords = match[1].split(',')
