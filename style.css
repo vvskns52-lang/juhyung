@@ -668,10 +668,9 @@ textarea.name-list {
 }
 
 .checkbox-item span {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 120px;
+    white-space: normal;
+    word-break: break-all;
+    line-height: 1.4;
 }
 
 .btn-delete {
@@ -1153,18 +1152,17 @@ tr:hover td {
 
 .tag-content-area {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     flex: 1;
     gap: 4px;
-    overflow: hidden;
 }
 
 .tag-text {
     font-size: 0.82rem;
     font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    word-break: break-all;
+    line-height: 1.4;
 }
 
 /* 시스템 프롬프트 튜닝 스위치 */
