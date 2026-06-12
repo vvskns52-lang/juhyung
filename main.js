@@ -9,11 +9,11 @@ const defaultAutonomousActivities = [
 ];
 
 const defaultSubjectActivities = [
-    "#수학적모델링", "#과학적원리실험", "#진로연계심화발표", "#탐구보고서작성",
-    "#비판적도서비평", "#시사이슈분석보고", "#마인드맵개념구조화", "#오답원인메타인지",
-    "#배움나눔멘토링", "#대안적문제풀이", "#프로그램구현", "#실험설계및관찰",
-    "#추가자료분석", "#질문중심배움일지", "#교과피드백수용", "#주제탐구포스터",
-    "#원리시각화발표", "#오류교정워크북", "#교과어휘개념학습", "#심층주제토론"
+    "#실생활적용발표", "#마인드맵개념요약", "#실험관찰배움일지", "#모둠협력프로젝트",
+    "#오답원인개선분석", "#독서활동연계정리", "#질문노트기록관리", "#포스터그리기제작",
+    "#도식화설명회", "#기초개념다지기", "#어휘낱말카드작성", "#창의적대안문제풀이",
+    "#교과포트폴리오정리", "#또래배움멘토역할", "#수업태도집중경청", "#토론참여의견경청",
+    "#수업지문분석요약", "#핵심요약카드뉴스", "#단원평가개선오답", "#수업활동지꼼꼼완성"
 ];
 
 const defaultBehaviorActivities = [
@@ -35,17 +35,11 @@ if (!autonomousList) {
     localStorage.setItem('ai_pool_autonomous_v10', JSON.stringify(autonomousList));
 }
 
-let subjectList = JSON.parse(localStorage.getItem('ai_pool_subject_v10'));
+let subjectList = JSON.parse(localStorage.getItem('ai_pool_subject_v11'));
 if (!subjectList) {
-    // Inherit from v9 or fallback
-    const v9List = JSON.parse(localStorage.getItem('ai_pool_subject_v9'));
-    if (v9List) {
-        subjectList = v9List;
-    } else {
-        const v8Custom = JSON.parse(localStorage.getItem('ai_custom_subject_activities_v8')) || [];
-        subjectList = [...new Set([...v8Custom, ...defaultSubjectActivities])];
-    }
-    localStorage.setItem('ai_pool_subject_v10', JSON.stringify(subjectList));
+    // Force reset subject pool to new junior high default activities
+    subjectList = [...defaultSubjectActivities];
+    localStorage.setItem('ai_pool_subject_v11', JSON.stringify(subjectList));
 }
 
 let behaviorList = JSON.parse(localStorage.getItem('ai_pool_behavior_v10'));
@@ -342,7 +336,7 @@ function getActiveLists() {
     if (activeCategory === 'subject') {
         return {
             list: subjectList,
-            storageKey: 'ai_pool_subject_v10'
+            storageKey: 'ai_pool_subject_v11'
         };
     } else if (activeCategory === 'behavior') {
         return {
