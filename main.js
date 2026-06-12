@@ -919,17 +919,29 @@ function appendResultRow(name, activities, recordText, rowIndex, isSuccess) {
         resultTbody.innerHTML = '';
     }
 
-    // AI 결과 텍스트에서 역량/키워드 관련 괄호 부분 파싱 및 추출 (콜론이 없거나 다양한 변칭 대응)
+    // AI 결과 텍스트에서 역량/키워드 관련 모든 형태의 대괄호 영역 파싱 및 삭제
     let extractedKeywords = [];
     let cleanRecordText = recordText;
-    const keywordRegex = /\[(?:역량|키워드|태그)[^\]]*[:\s]+([^\]]+)\]/i;
-    const match = recordText.match(keywordRegex);
+    const bracketRegex = /\[[^\]]*(?:역량|키워드|태그|#)[^\]]*\]/gi;
+    const match = recordText.match(bracketRegex);
     if (match) {
-        extractedKeywords = match[1].split(',')
-            .map(k => k.trim())
-            .filter(k => k !== '')
-            .map(k => k.startsWith('#') ? k : '#' + k);
-        cleanRecordText = recordText.replace(keywordRegex, '').trim();
+        match.forEach(m => {
+            const innerContent = m.replace(/[\[\]]/g, '');
+            const separatorIdx = innerContent.indexOf(':') !== -1 ? innerContent.indexOf(':') : innerContent.search(/[\s#]/);
+            const wordsPart = separatorIdx !== -1 ? innerContent.slice(separatorIdx + 1) : innerContent;
+            
+            const words = wordsPart.split(',')
+                .map(k => k.trim())
+                .filter(k => k !== '');
+                
+            words.forEach(w => {
+                const cleanW = w.startsWith('#') ? w : '#' + w;
+                if (!extractedKeywords.includes(cleanW)) {
+                    extractedKeywords.push(cleanW);
+                }
+            });
+        });
+        cleanRecordText = recordText.replace(bracketRegex, '').trim();
     }
     
     // 본문용 텍스트 동기화
@@ -1126,17 +1138,29 @@ async function regenerateOneRecord(index) {
     try {
         const recordText = await fetchGeminiRecord(apiKey, selectedModel, promptText);
         
-        // AI 결과 텍스트에서 역량/키워드 관련 괄호 부분 파싱 및 추출 (콜론이 없거나 다양한 변칭 대응)
+        // AI 결과 텍스트에서 역량/키워드 관련 모든 형태의 대괄호 영역 파싱 및 삭제
         let extractedKeywords = [];
         let cleanRecordText = recordText;
-        const keywordRegex = /\[(?:역량|키워드|태그)[^\]]*[:\s]+([^\]]+)\]/i;
-        const match = recordText.match(keywordRegex);
+        const bracketRegex = /\[[^\]]*(?:역량|키워드|태그|#)[^\]]*\]/gi;
+        const match = recordText.match(bracketRegex);
         if (match) {
-            extractedKeywords = match[1].split(',')
-                .map(k => k.trim())
-                .filter(k => k !== '')
-                .map(k => k.startsWith('#') ? k : '#' + k);
-            cleanRecordText = recordText.replace(keywordRegex, '').trim();
+            match.forEach(m => {
+                const innerContent = m.replace(/[\[\]]/g, '');
+                const separatorIdx = innerContent.indexOf(':') !== -1 ? innerContent.indexOf(':') : innerContent.search(/[\s#]/);
+                const wordsPart = separatorIdx !== -1 ? innerContent.slice(separatorIdx + 1) : innerContent;
+                
+                const words = wordsPart.split(',')
+                    .map(k => k.trim())
+                    .filter(k => k !== '');
+                    
+                words.forEach(w => {
+                    const cleanW = w.startsWith('#') ? w : '#' + w;
+                    if (!extractedKeywords.includes(cleanW)) {
+                        extractedKeywords.push(cleanW);
+                    }
+                });
+            });
+            cleanRecordText = recordText.replace(bracketRegex, '').trim();
         }
         
         // Update states and view
@@ -1222,17 +1246,29 @@ async function rewriteSentence(index, mode, btnElement) {
     try {
         const correctedText = await fetchGeminiRecord(apiKey, selectedModel, promptText);
         
-        // AI 결과 텍스트에서 역량/키워드 관련 괄호 부분 파싱 및 추출 (콜론이 없거나 다양한 변칭 대응)
+        // AI 결과 텍스트에서 역량/키워드 관련 모든 형태의 대괄호 영역 파싱 및 삭제
         let extractedKeywords = [];
         let cleanCorrectedText = correctedText;
-        const keywordRegex = /\[(?:역량|키워드|태그)[^\]]*[:\s]+([^\]]+)\]/i;
-        const match = correctedText.match(keywordRegex);
+        const bracketRegex = /\[[^\]]*(?:역량|키워드|태그|#)[^\]]*\]/gi;
+        const match = correctedText.match(bracketRegex);
         if (match) {
-            extractedKeywords = match[1].split(',')
-                .map(k => k.trim())
-                .filter(k => k !== '')
-                .map(k => k.startsWith('#') ? k : '#' + k);
-            cleanCorrectedText = correctedText.replace(keywordRegex, '').trim();
+            match.forEach(m => {
+                const innerContent = m.replace(/[\[\]]/g, '');
+                const separatorIdx = innerContent.indexOf(':') !== -1 ? innerContent.indexOf(':') : innerContent.search(/[\s#]/);
+                const wordsPart = separatorIdx !== -1 ? innerContent.slice(separatorIdx + 1) : innerContent;
+                
+                const words = wordsPart.split(',')
+                    .map(k => k.trim())
+                    .filter(k => k !== '');
+                    
+                words.forEach(w => {
+                    const cleanW = w.startsWith('#') ? w : '#' + w;
+                    if (!extractedKeywords.includes(cleanW)) {
+                        extractedKeywords.push(cleanW);
+                    }
+                });
+            });
+            cleanCorrectedText = correctedText.replace(bracketRegex, '').trim();
         }
         
         // Update states and view
