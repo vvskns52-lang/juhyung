@@ -1292,27 +1292,79 @@ function exportToExcel() {
         return;
     }
 
-    // Prefix with BOM to avoid Korean broken characters in MS Excel
-    let csvContent = "\uFEFF이름,배정활동,특기사항 내용\n";
-
-    globalResults.forEach(row => {
-        // Escape quotes
-        let activitiesText = row.activities.join(" / ").replace(/"/g, '""');
-        let record = row.record.replace(/"/g, '""'); 
-        csvContent += `${row.name},"${activitiesText}","${record}"\n`;
-    });
-
-    let filename = "생기부_일괄생성.csv";
+    let filename = "생기부_일괄생성.xls";
     if (activeCategory === 'subject') {
         const subj = subjectNameInput.value.trim() || "교과";
-        filename = `과세특_${subj}_일괄생성.csv`;
+        filename = `과세특_${subj}_일괄생성.xls`;
     } else if (activeCategory === 'behavior') {
-        filename = "행동특성_종합의견_일괄생성.csv";
+        filename = "행동특성_종합의견_일괄생성.xls";
     } else {
-        filename = "자율활동_특기사항_일괄생성.csv";
+        filename = "자율활동_특기사항_일괄생성.xls";
     }
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    // HTML Table template for Excel with width and wrap styling
+    let excelHtml = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+    <meta charset="utf-8">
+    <!--[if gte mso 9]>
+    <xml>
+      <x:ExcelWorkbook>
+        <x:ExcelWorksheets>
+          <x:ExcelWorksheet>
+            <x:Name>생기부 결과</x:Name>
+            <x:WorksheetOptions>
+              <x:DisplayGridlines/>
+            </x:WorksheetOptions>
+          </x:ExcelWorksheet>
+        </x:ExcelWorksheets>
+      </x:ExcelWorkbook>
+    </xml>
+    <![endif]-->
+    <style>
+      table { border-collapse: collapse; table-layout: fixed; width: 1050px; }
+      td, th { border: 0.5pt solid #cccccc; padding: 6px; font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; font-size: 10pt; vertical-align: top; }
+      th { background-color: #f2f2f2; font-weight: bold; text-align: center; }
+      .col-name { width: 80px; }
+      .col-activities { width: 270px; }
+      .col-record { width: 700px; }
+      .text-wrap { white-space: normal; word-wrap: break-word; mso-number-format: "\\@"; }
+    </style>
+    </head>
+    <body>
+    <table>
+      <thead>
+        <tr>
+          <th class="col-name">이름</th>
+          <th class="col-activities">배정활동</th>
+          <th class="col-record">특기사항 내용</th>
+        </tr>
+      </thead>
+      <tbody>
+    `;
+
+    globalResults.forEach(row => {
+        // Replace newlines with same-cell break for Excel line breaks
+        let activitiesHtml = row.activities.join("<br style='mso-data-placement:same-cell;'/>");
+        let recordHtml = row.record.replace(/\n/g, "<br style='mso-data-placement:same-cell;'/>");
+        
+        excelHtml += `
+          <tr>
+            <td class="text-wrap">${row.name}</td>
+            <td class="text-wrap">${activitiesHtml}</td>
+            <td class="text-wrap">${recordHtml}</td>
+          </tr>
+        `;
+    });
+
+    excelHtml += `
+      </tbody>
+    </table>
+    </body>
+    </html>
+    `;
+
+    const blob = new Blob([excelHtml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     
