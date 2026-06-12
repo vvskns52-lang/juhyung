@@ -1572,6 +1572,8 @@ tr:hover td {
     75% { transform: translateX(4px); }
 }
 
+
+
 /* AI 추출 해시태그 배지 */
 .extracted-keywords-wrapper {
     display: flex;

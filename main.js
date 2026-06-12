@@ -1,4 +1,4 @@
-﻿// ==========================================================================
+// ==========================================================================
 // 1. Initial State, Default Data & Configuration
 // ==========================================================================
 const defaultAutonomousActivities = [
@@ -1145,7 +1145,6 @@ async function regenerateOneRecord(index) {
                 '<span style="color:var(--text-muted); font-size:0.72rem; font-style:italic;">💡 AI가 추출한 핵심 역량이 여기에 표시됩니다.</span>';
         }
         
-        // 피드백 갱신 호출
         updateRecordFeedback(index, cleanRecordText);
         
     } catch (error) {
@@ -1238,7 +1237,6 @@ async function rewriteSentence(index, mode, btnElement) {
                 '<span style="color:var(--text-muted); font-size:0.72rem; font-style:italic;">💡 AI가 추출한 핵심 역량이 여기에 표시됩니다.</span>';
         }
         
-        // 피드백 갱신 호출
         updateRecordFeedback(index, cleanCorrectedText);
 
         // Success Feedback
