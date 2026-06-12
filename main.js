@@ -819,7 +819,7 @@ async function generateBatchRecords() {
     }
 
     const names = namesText.split('\n').map(line => {
-        const parts = line.split('|');
+        const parts = line.split(':');
         const name = parts[0].trim();
         const memo = parts[1] ? parts[1].trim() : "";
         return { name, memo };
