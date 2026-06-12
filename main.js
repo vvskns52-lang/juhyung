@@ -28,10 +28,27 @@ const defaultBehaviorActivities = [
 // Active Category State: 'autonomous' | 'subject' | 'behavior'
 let activeCategory = 'autonomous';
 
-// Lists for each category (retrieved from localStorage or defaulted)
-let autonomousList = JSON.parse(localStorage.getItem('ai_custom_activities_v8')) || [];
-let subjectList = JSON.parse(localStorage.getItem('ai_custom_subject_activities_v8')) || [];
-let behaviorList = JSON.parse(localStorage.getItem('ai_custom_behavior_activities_v8')) || [];
+// Lists for each category (retrieved from localStorage or defaulted, migrated to v9 single unified pool)
+let autonomousList = JSON.parse(localStorage.getItem('ai_pool_autonomous_v9'));
+if (!autonomousList) {
+    const v8Custom = JSON.parse(localStorage.getItem('ai_custom_activities_v8')) || [];
+    autonomousList = [...new Set([...v8Custom, ...defaultAutonomousActivities])];
+    localStorage.setItem('ai_pool_autonomous_v9', JSON.stringify(autonomousList));
+}
+
+let subjectList = JSON.parse(localStorage.getItem('ai_pool_subject_v9'));
+if (!subjectList) {
+    const v8Custom = JSON.parse(localStorage.getItem('ai_custom_subject_activities_v8')) || [];
+    subjectList = [...new Set([...v8Custom, ...defaultSubjectActivities])];
+    localStorage.setItem('ai_pool_subject_v9', JSON.stringify(subjectList));
+}
+
+let behaviorList = JSON.parse(localStorage.getItem('ai_pool_behavior_v9'));
+if (!behaviorList) {
+    const v8Custom = JSON.parse(localStorage.getItem('ai_custom_behavior_activities_v8')) || [];
+    behaviorList = [...new Set([...v8Custom, ...defaultBehaviorActivities])];
+    localStorage.setItem('ai_pool_behavior_v9', JSON.stringify(behaviorList));
+}
 
 let globalResults = []; // { name, activities: [], record: "" }
 let isGenerating = false;
@@ -313,21 +330,18 @@ function switchCategory(category) {
 function getActiveLists() {
     if (activeCategory === 'subject') {
         return {
-            custom: subjectList,
-            defaults: defaultSubjectActivities,
-            storageKey: 'ai_custom_subject_activities_v8'
+            list: subjectList,
+            storageKey: 'ai_pool_subject_v9'
         };
     } else if (activeCategory === 'behavior') {
         return {
-            custom: behaviorList,
-            defaults: defaultBehaviorActivities,
-            storageKey: 'ai_custom_behavior_activities_v8'
+            list: behaviorList,
+            storageKey: 'ai_pool_behavior_v9'
         };
     } else {
         return {
-            custom: autonomousList,
-            defaults: defaultAutonomousActivities,
-            storageKey: 'ai_custom_activities_v8'
+            list: autonomousList,
+            storageKey: 'ai_pool_autonomous_v9'
         };
     }
 }
@@ -336,59 +350,38 @@ function renderCheckboxes() {
     checkboxGrid.innerHTML = ''; 
     const lists = getActiveLists();
     
-    // 로컬 스토리지에 정렬 순서가 보존되어 있다면 이를 반영해 병합
-    const savedOrderKey = `ai_activity_order_${activeCategory}_v8`;
-    const savedOrder = JSON.parse(localStorage.getItem(savedOrderKey)) || [];
-    
-    // 전체 항목 리스트 빌드 (커스텀 + 디폴트)
-    let allActivities = [];
-    
-    // 이미 체크된 커스텀/디폴트 텍스트 추출용
-    lists.custom.forEach(act => allActivities.push({ text: act, isCustom: true }));
-    lists.defaults.forEach(act => allActivities.push({ text: act, isCustom: false }));
-    
-    // 저장된 우선순위 순서대로 재배치
-    if (savedOrder.length > 0) {
-        allActivities.sort((a, b) => {
-            let idxA = savedOrder.indexOf(a.text);
-            let idxB = savedOrder.indexOf(b.text);
-            if (idxA === -1) idxA = 999;
-            if (idxB === -1) idxB = 999;
-            return idxA - idxB;
-        });
-    }
-
     // Render Draggable Tags
-    allActivities.forEach((item, index) => {
+    lists.list.forEach((item, index) => {
         const wrapper = document.createElement('div');
-        wrapper.className = `draggable-tag${item.isCustom ? ' custom-added' : ''}`;
+        wrapper.className = 'draggable-tag';
         wrapper.setAttribute('draggable', 'true');
         wrapper.setAttribute('data-index', index);
-        wrapper.setAttribute('data-text', item.text);
+        wrapper.setAttribute('data-text', item);
         
         wrapper.innerHTML = `
             <div class="tag-content-area">
                 <span class="tag-drag-handle">☰</span>
                 <span class="tag-index-badge">${index + 1}</span>
                 <label class="checkbox-item" style="cursor: grab;">
-                    <input type="checkbox" value="${item.text}" checked> 
-                    <span class="tag-text" title="${item.text}">${item.text}</span>
+                    <input type="checkbox" value="${item}" checked> 
+                    <span class="tag-text" title="더블클릭하여 내용 수정 가능">${item}</span>
                 </label>
             </div>
-            ${item.isCustom ? `<button class="btn-delete" title="완전 삭제">✖</button>` : ''}
+            <button class="btn-delete" title="완전 삭제">✖</button>
         `;
 
-        if (item.isCustom) {
-            // 커스텀 요소 삭제 이벤트 바인딩
-            wrapper.querySelector('.btn-delete').addEventListener('click', (e) => {
-                e.stopPropagation();
-                const targetText = wrapper.getAttribute('data-text');
-                const customIdx = lists.custom.indexOf(targetText);
-                if (customIdx !== -1) {
-                    deleteCustomActivity(customIdx);
-                }
-            });
-        }
+        // 삭제 이벤트 바인딩
+        wrapper.querySelector('.btn-delete').addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteCustomActivity(index);
+        });
+        
+        // 더블클릭 편집 이벤트 바인딩
+        const tagTextSpan = wrapper.querySelector('.tag-text');
+        tagTextSpan.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            startEditTag(tagTextSpan, index, lists, wrapper);
+        });
         
         // 드래그 앤 드롭 네이티브 이벤트 바인딩
         wrapper.addEventListener('dragstart', handleDragStart);
@@ -397,6 +390,64 @@ function renderCheckboxes() {
         wrapper.addEventListener('dragend', handleDragEnd);
 
         checkboxGrid.appendChild(wrapper);
+    });
+}
+
+// 태그 더블클릭 인라인 편집 핸들러
+function startEditTag(element, index, lists, wrapper) {
+    const originalText = lists.list[index];
+    
+    // 편집 중 드래그 방지
+    wrapper.setAttribute('draggable', 'false');
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'tag-edit-input';
+    input.value = originalText;
+    
+    element.replaceWith(input);
+    input.focus();
+    input.select();
+    
+    let isFinished = false;
+    
+    const saveEdit = () => {
+        if (isFinished) return;
+        isFinished = true;
+        
+        const newValue = input.value.trim();
+        if (!newValue) {
+            alert("수정할 내용을 입력해주세요!");
+            renderCheckboxes();
+            return;
+        }
+        
+        if (newValue !== originalText && lists.list.includes(newValue)) {
+            alert("이미 등록된 항목입니다!");
+            renderCheckboxes();
+            return;
+        }
+        
+        // 데이터 갱신 및 로컬스토리지 동기화
+        lists.list[index] = newValue;
+        localStorage.setItem(lists.storageKey, JSON.stringify(lists.list));
+        renderCheckboxes();
+    };
+    
+    const cancelEdit = () => {
+        if (isFinished) return;
+        isFinished = true;
+        renderCheckboxes();
+    };
+    
+    input.addEventListener('blur', saveEdit);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveEdit();
+        } else if (e.key === 'Escape') {
+            cancelEdit();
+        }
     });
 }
 
@@ -436,18 +487,14 @@ function handleDrop(e) {
 
 // 드래그 드롭 후 내부 배열 순서 갱신 및 로컬저장소 동기화
 function reorderActivities(fromIdx, toIdx) {
-    const tags = Array.from(checkboxGrid.querySelectorAll('.draggable-tag'));
-    
-    // DOM 요소를 기준으로 텍스트 배열을 추출
-    let activityTexts = tags.map(tag => tag.getAttribute('data-text'));
+    const lists = getActiveLists();
     
     // 요소 스왑
-    const [movedItem] = activityTexts.splice(fromIdx, 1);
-    activityTexts.splice(toIdx, 0, movedItem);
+    const [movedItem] = lists.list.splice(fromIdx, 1);
+    lists.list.splice(toIdx, 0, movedItem);
     
-    // 순서 정렬 정보 localStorage 저장
-    const savedOrderKey = `ai_activity_order_${activeCategory}_v8`;
-    localStorage.setItem(savedOrderKey, JSON.stringify(activityTexts));
+    // 순서 정보 localStorage 저장
+    localStorage.setItem(lists.storageKey, JSON.stringify(lists.list));
     
     // 화면 재배치
     renderCheckboxes();
@@ -461,13 +508,13 @@ function addCustomActivity() {
     }
 
     const lists = getActiveLists();
-    if (lists.custom.includes(activityText) || lists.defaults.includes(activityText)) { 
+    if (lists.list.includes(activityText)) { 
         alert("이미 등록된 항목입니다!"); 
         return; 
     }
 
-    lists.custom.unshift(activityText); 
-    localStorage.setItem(lists.storageKey, JSON.stringify(lists.custom));
+    lists.list.unshift(activityText); 
+    localStorage.setItem(lists.storageKey, JSON.stringify(lists.list));
     customActivityInput.value = ''; 
     renderCheckboxes(); 
 }
@@ -475,8 +522,8 @@ function addCustomActivity() {
 function deleteCustomActivity(index) {
     if (confirm("이 항목을 완전히 삭제하시겠습니까?")) {
         const lists = getActiveLists();
-        lists.custom.splice(index, 1);
-        localStorage.setItem(lists.storageKey, JSON.stringify(lists.custom));
+        lists.list.splice(index, 1);
+        localStorage.setItem(lists.storageKey, JSON.stringify(lists.list));
         renderCheckboxes();
     }
 }
