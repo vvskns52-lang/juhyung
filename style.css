@@ -778,7 +778,7 @@ textarea.name-list {
    ========================================================================== */
 .table-container {
     flex: 1;
-    min-height: 0; /* Flexbox scroll container bugfix */
+    max-height: 600px; /* 테이블 높이 제한 및 내부 스크롤 복원 */
     overflow-y: auto;
     border: 1px solid var(--border-color);
     border-radius: 14px;

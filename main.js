@@ -919,13 +919,16 @@ function appendResultRow(name, activities, recordText, rowIndex, isSuccess) {
         resultTbody.innerHTML = '';
     }
 
-    // AI 결과 텍스트에서 [역량키워드: ...] 부분 파싱 및 추출
+    // AI 결과 텍스트에서 [역량키워드/핵심역량/핵심 역량: ...] 부분 파싱 및 추출 (다양한 변종 대응)
     let extractedKeywords = [];
     let cleanRecordText = recordText;
-    const keywordRegex = /\[역량키워드:\s*(#[^\]]+)\]/i;
+    const keywordRegex = /\[(?:역량키워드|핵심역량|핵심\s*역량|역량\s*키워드):\s*([^\]]+)\]/i;
     const match = recordText.match(keywordRegex);
     if (match) {
-        extractedKeywords = match[1].split(',').map(k => k.trim()).filter(k => k !== '');
+        extractedKeywords = match[1].split(',')
+            .map(k => k.trim())
+            .filter(k => k !== '')
+            .map(k => k.startsWith('#') ? k : '#' + k);
         cleanRecordText = recordText.replace(keywordRegex, '').trim();
     }
     
@@ -1123,13 +1126,16 @@ async function regenerateOneRecord(index) {
     try {
         const recordText = await fetchGeminiRecord(apiKey, selectedModel, promptText);
         
-        // AI 결과 텍스트에서 [역량키워드: ...] 부분 파싱 및 추출
+        // AI 결과 텍스트에서 [역량키워드/핵심역량/핵심 역량: ...] 부분 파싱 및 추출 (다양한 변종 대응)
         let extractedKeywords = [];
         let cleanRecordText = recordText;
-        const keywordRegex = /\[역량키워드:\s*(#[^\]]+)\]/i;
+        const keywordRegex = /\[(?:역량키워드|핵심역량|핵심\s*역량|역량\s*키워드):\s*([^\]]+)\]/i;
         const match = recordText.match(keywordRegex);
         if (match) {
-            extractedKeywords = match[1].split(',').map(k => k.trim()).filter(k => k !== '');
+            extractedKeywords = match[1].split(',')
+                .map(k => k.trim())
+                .filter(k => k !== '')
+                .map(k => k.startsWith('#') ? k : '#' + k);
             cleanRecordText = recordText.replace(keywordRegex, '').trim();
         }
         
@@ -1216,13 +1222,16 @@ async function rewriteSentence(index, mode, btnElement) {
     try {
         const correctedText = await fetchGeminiRecord(apiKey, selectedModel, promptText);
         
-        // AI 결과 텍스트에서 [역량키워드: ...] 부분 파싱 및 추출
+        // AI 결과 텍스트에서 [역량키워드/핵심역량/핵심 역량: ...] 부분 파싱 및 추출 (다양한 변종 대응)
         let extractedKeywords = [];
         let cleanCorrectedText = correctedText;
-        const keywordRegex = /\[역량키워드:\s*(#[^\]]+)\]/i;
+        const keywordRegex = /\[(?:역량키워드|핵심역량|핵심\s*역량|역량\s*키워드):\s*([^\]]+)\]/i;
         const match = correctedText.match(keywordRegex);
         if (match) {
-            extractedKeywords = match[1].split(',').map(k => k.trim()).filter(k => k !== '');
+            extractedKeywords = match[1].split(',')
+                .map(k => k.trim())
+                .filter(k => k !== '')
+                .map(k => k.startsWith('#') ? k : '#' + k);
             cleanCorrectedText = correctedText.replace(keywordRegex, '').trim();
         }
         
