@@ -303,20 +303,20 @@ function switchCategory(category) {
     if (category === 'subject') {
         subjectNameGroup.classList.remove('hidden');
         activityPoolLabel.innerHTML = `🧪 과목 수행/탐구 내용 풀(Pool) 선택 <span class="label-info">(학생별 랜덤 배정용)</span>`;
-        poolNoticeMsg.textContent = `* 풍부한 내용 조합을 위해 수행평가 및 교과 활동을 4개 이상 등록해 주세요.`;
+        poolNoticeMsg.innerHTML = `* 풍부한 내용 조합을 위해 수행평가 및 교과 활동을 4개 이상 등록해 주세요. <br><span style="color:var(--accent-blue); font-weight:700;">💡 각 태그를 더블클릭하면 텍스트를 즉시 수정할 수 있으며, 드래그하여 우선순위를 바꿀 수 있습니다.</span>`;
         customActivityInput.placeholder = "예: 수학 심화 발표 - 프랙탈 이론 탐구";
         tableResultHeader.textContent = "배정된 탐구 및 과목별 세부능력 특기사항 (클릭하여 직접 수정 가능)";
     } else if (category === 'behavior') {
         subjectNameGroup.classList.add('hidden');
         activityPoolLabel.innerHTML = `🌱 인성 요소 및 행동 관찰 풀(Pool) 선택 <span class="label-info">(학생별 랜덤 배정용)</span>`;
-        poolNoticeMsg.textContent = `* 학생의 다양한 미덕 표현을 위해 인성 특성을 4개 이상 등록해 주세요.`;
+        poolNoticeMsg.innerHTML = `* 학생의 다양한 미덕 표현을 위해 인성 특성을 4개 이상 등록해 주세요. <br><span style="color:var(--accent-blue); font-weight:700;">💡 각 태그를 더블클릭하면 텍스트를 즉시 수정할 수 있으며, 드래그하여 우선순위를 바꿀 수 있습니다.</span>`;
         customActivityInput.placeholder = "예: 모범 학생 - 학급 환경 정화활동 솔선수범";
         tableResultHeader.textContent = "배정된 특성 및 행동특성 종합의견 (클릭하여 직접 수정 가능)";
     } else {
         // Autonomous
         subjectNameGroup.classList.add('hidden');
         activityPoolLabel.innerHTML = `✅ 활동 풀(Pool) 선택 <span class="label-info">(학생별 랜덤 배정용)</span>`;
-        poolNoticeMsg.textContent = `* 다양한 조합을 위해 자율활동을 최소 4개 이상 체크해 두는 것을 권장합니다.`;
+        poolNoticeMsg.innerHTML = `* 다양한 조합을 위해 자율활동을 최소 4개 이상 체크해 두는 것을 권장합니다. <br><span style="color:var(--accent-blue); font-weight:700;">💡 각 태그를 더블클릭하면 텍스트를 즉시 수정할 수 있으며, 드래그하여 우선순위를 바꿀 수 있습니다.</span>`;
         customActivityInput.placeholder = "예: 체육대회 계주 및 학급 응원 단장 (5/15)";
         tableResultHeader.textContent = "배정된 활동 및 자율활동 특기사항 (클릭하여 직접 수정 가능)";
     }
