@@ -2,11 +2,10 @@
 // 1. Initial State, Default Data & Configuration
 // ==========================================================================
 const defaultAutonomousActivities = [
-    "#학급임원(1학기)", "#학급자치회의(4/10)", "#교실환경미화(5/12)", "#학교폭력예방교육(3/16)",
-    "#장애이해교육(4/20)", "#감사의날편지(5/6)", "#축제응원단(5/15)", "#소방대피훈련(6/12)",
-    "#양성평등교육(6/25)", "#민주시민토론", "#진로직업체험", "#금연캠페인",
-    "#다문화이해활동", "#사이버안전교육", "#학급특색활동", "#생명존중교육",
-    "#체육대회계주", "#환경보호글쓰기", "#어버이날효도일지", "#인성역량워크숍"
+    "#학교생활안내(3/3)", "#학급자치회조직(3/12)", "#학교폭력예방교육(도박,사이버범죄)(3/16)",
+    "#학생인권교육1(3/27)", "#아동학대및가정폭력예방교육1(3/27)", "#성폭력예방교육(3/31)",
+    "#학급자치회의(4/10)", "#장애이해교육(4/20)", "#감사의날(5/6)",
+    "#학급별특색활동(5/26)", "#학생인권교육(6/2)", "#방학식(7/21)"
 ];
 
 const defaultSubjectActivities = [
@@ -28,26 +27,38 @@ const defaultBehaviorActivities = [
 // Active Category State: 'autonomous' | 'subject' | 'behavior'
 let activeCategory = 'autonomous';
 
-// Lists for each category (retrieved from localStorage or defaulted, migrated to v9 single unified pool)
-let autonomousList = JSON.parse(localStorage.getItem('ai_pool_autonomous_v9'));
+// Lists for each category (retrieved from localStorage or defaulted, migrated to v10 single unified pool)
+let autonomousList = JSON.parse(localStorage.getItem('ai_pool_autonomous_v10'));
 if (!autonomousList) {
-    const v8Custom = JSON.parse(localStorage.getItem('ai_custom_activities_v8')) || [];
-    autonomousList = [...new Set([...v8Custom, ...defaultAutonomousActivities])];
-    localStorage.setItem('ai_pool_autonomous_v9', JSON.stringify(autonomousList));
+    // Force reset autonomous pool to the new real curriculum table data
+    autonomousList = [...defaultAutonomousActivities];
+    localStorage.setItem('ai_pool_autonomous_v10', JSON.stringify(autonomousList));
 }
 
-let subjectList = JSON.parse(localStorage.getItem('ai_pool_subject_v9'));
+let subjectList = JSON.parse(localStorage.getItem('ai_pool_subject_v10'));
 if (!subjectList) {
-    const v8Custom = JSON.parse(localStorage.getItem('ai_custom_subject_activities_v8')) || [];
-    subjectList = [...new Set([...v8Custom, ...defaultSubjectActivities])];
-    localStorage.setItem('ai_pool_subject_v9', JSON.stringify(subjectList));
+    // Inherit from v9 or fallback
+    const v9List = JSON.parse(localStorage.getItem('ai_pool_subject_v9'));
+    if (v9List) {
+        subjectList = v9List;
+    } else {
+        const v8Custom = JSON.parse(localStorage.getItem('ai_custom_subject_activities_v8')) || [];
+        subjectList = [...new Set([...v8Custom, ...defaultSubjectActivities])];
+    }
+    localStorage.setItem('ai_pool_subject_v10', JSON.stringify(subjectList));
 }
 
-let behaviorList = JSON.parse(localStorage.getItem('ai_pool_behavior_v9'));
+let behaviorList = JSON.parse(localStorage.getItem('ai_pool_behavior_v10'));
 if (!behaviorList) {
-    const v8Custom = JSON.parse(localStorage.getItem('ai_custom_behavior_activities_v8')) || [];
-    behaviorList = [...new Set([...v8Custom, ...defaultBehaviorActivities])];
-    localStorage.setItem('ai_pool_behavior_v9', JSON.stringify(behaviorList));
+    // Inherit from v9 or fallback
+    const v9List = JSON.parse(localStorage.getItem('ai_pool_behavior_v9'));
+    if (v9List) {
+        behaviorList = v9List;
+    } else {
+        const v8Custom = JSON.parse(localStorage.getItem('ai_custom_behavior_activities_v8')) || [];
+        behaviorList = [...new Set([...v8Custom, ...defaultBehaviorActivities])];
+    }
+    localStorage.setItem('ai_pool_behavior_v10', JSON.stringify(behaviorList));
 }
 
 let globalResults = []; // { name, activities: [], record: "" }
@@ -331,17 +342,17 @@ function getActiveLists() {
     if (activeCategory === 'subject') {
         return {
             list: subjectList,
-            storageKey: 'ai_pool_subject_v9'
+            storageKey: 'ai_pool_subject_v10'
         };
     } else if (activeCategory === 'behavior') {
         return {
             list: behaviorList,
-            storageKey: 'ai_pool_behavior_v9'
+            storageKey: 'ai_pool_behavior_v10'
         };
     } else {
         return {
             list: autonomousList,
-            storageKey: 'ai_pool_autonomous_v9'
+            storageKey: 'ai_pool_autonomous_v10'
         };
     }
 }
