@@ -1,4 +1,4 @@
-﻿// ==========================================================================
+// ==========================================================================
 // 1. Initial State, Default Data & Configuration
 // ==========================================================================
 const defaultAutonomousActivities = [
@@ -24,35 +24,61 @@ const defaultBehaviorActivities = [
     "#배움나눔실천", "#급우협동지원", "#자기조절우수", "#성실책임완수"
 ];
 
+// Safe LocalStorage wrapper to prevent browser security exceptions (e.g. file:// protocol load)
+const SafeStorage = {
+    getItem(key) {
+        try {
+            return window.localStorage.getItem(key);
+        } catch (e) {
+            console.warn("localStorage.getItem failed for " + key, e);
+            return null;
+        }
+    },
+    setItem(key, value) {
+        try {
+            window.localStorage.setItem(key, value);
+        } catch (e) {
+            console.warn("localStorage.setItem failed for " + key, e);
+        }
+    },
+    removeItem(key) {
+        try {
+            window.localStorage.removeItem(key);
+        } catch (e) {
+            console.warn("localStorage.removeItem failed for " + key, e);
+        }
+    }
+};
+
 // Active Category State: 'autonomous' | 'subject' | 'behavior'
 let activeCategory = 'autonomous';
 
 // Lists for each category (retrieved from localStorage or defaulted, migrated to v10 single unified pool)
-let autonomousList = JSON.parse(localStorage.getItem('ai_pool_autonomous_v10'));
+let autonomousList = JSON.parse(SafeStorage.getItem('ai_pool_autonomous_v10'));
 if (!autonomousList) {
     // Force reset autonomous pool to the new real curriculum table data
     autonomousList = [...defaultAutonomousActivities];
-    localStorage.setItem('ai_pool_autonomous_v10', JSON.stringify(autonomousList));
+    SafeStorage.setItem('ai_pool_autonomous_v10', JSON.stringify(autonomousList));
 }
 
-let subjectList = JSON.parse(localStorage.getItem('ai_pool_subject_v11'));
+let subjectList = JSON.parse(SafeStorage.getItem('ai_pool_subject_v11'));
 if (!subjectList) {
     // Force reset subject pool to new junior high default activities
     subjectList = [...defaultSubjectActivities];
-    localStorage.setItem('ai_pool_subject_v11', JSON.stringify(subjectList));
+    SafeStorage.setItem('ai_pool_subject_v11', JSON.stringify(subjectList));
 }
 
-let behaviorList = JSON.parse(localStorage.getItem('ai_pool_behavior_v10'));
+let behaviorList = JSON.parse(SafeStorage.getItem('ai_pool_behavior_v10'));
 if (!behaviorList) {
     // Inherit from v9 or fallback
-    const v9List = JSON.parse(localStorage.getItem('ai_pool_behavior_v9'));
+    const v9List = JSON.parse(SafeStorage.getItem('ai_pool_behavior_v9'));
     if (v9List) {
         behaviorList = v9List;
     } else {
-        const v8Custom = JSON.parse(localStorage.getItem('ai_custom_behavior_activities_v8')) || [];
+        const v8Custom = JSON.parse(SafeStorage.getItem('ai_custom_behavior_activities_v8')) || [];
         behaviorList = [...new Set([...v8Custom, ...defaultBehaviorActivities])];
     }
-    localStorage.setItem('ai_pool_behavior_v10', JSON.stringify(behaviorList));
+    SafeStorage.setItem('ai_pool_behavior_v10', JSON.stringify(behaviorList));
 }
 
 let globalResults = []; // { name, activities: [], record: "" }
@@ -125,7 +151,7 @@ const historyCardGrid = document.getElementById('history-card-grid');
 // 3. Theme Toggle & Storage Sync
 // ==========================================================================
 function initTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    const savedTheme = SafeStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateThemeToggleIcon(savedTheme);
 }
@@ -139,7 +165,7 @@ themeToggleBtn.addEventListener('click', () => {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
+    SafeStorage.setItem('theme', newTheme);
     updateThemeToggleIcon(newTheme);
 });
 
@@ -213,17 +239,17 @@ function togglePasswordVisibility() {
 
 // Restore saved settings from LocalStorage
 function restoreSettings() {
-    const savedKey = localStorage.getItem('gemini_api_key_v8');
+    const savedKey = SafeStorage.getItem('gemini_api_key_v8');
     if (savedKey) {
         apiKeyInput.value = savedKey;
     }
     
-    const savedModel = localStorage.getItem('gemini_model_v8');
+    const savedModel = SafeStorage.getItem('gemini_model_v8');
     if (savedModel) {
         modelSelect.value = savedModel;
     }
 
-    const savedSubjectName = localStorage.getItem('subject_name_v8');
+    const savedSubjectName = SafeStorage.getItem('subject_name_v8');
     if (savedSubjectName) {
         subjectNameInput.value = savedSubjectName;
     }
@@ -435,7 +461,7 @@ function startEditTag(element, index, lists, wrapper) {
         
         // 데이터 갱신 및 로컬스토리지 동기화
         lists.list[index] = newValue;
-        localStorage.setItem(lists.storageKey, JSON.stringify(lists.list));
+        SafeStorage.setItem(lists.storageKey, JSON.stringify(lists.list));
         renderCheckboxes();
     };
     
@@ -499,7 +525,7 @@ function reorderActivities(fromIdx, toIdx) {
     lists.list.splice(toIdx, 0, movedItem);
     
     // 순서 정보 localStorage 저장
-    localStorage.setItem(lists.storageKey, JSON.stringify(lists.list));
+    SafeStorage.setItem(lists.storageKey, JSON.stringify(lists.list));
     
     // 화면 재배치
     renderCheckboxes();
@@ -519,7 +545,7 @@ function addCustomActivity() {
     }
 
     lists.list.unshift(activityText); 
-    localStorage.setItem(lists.storageKey, JSON.stringify(lists.list));
+    SafeStorage.setItem(lists.storageKey, JSON.stringify(lists.list));
     customActivityInput.value = ''; 
     renderCheckboxes(); 
 }
@@ -528,7 +554,7 @@ function deleteCustomActivity(index) {
     if (confirm("이 항목을 완전히 삭제하시겠습니까?")) {
         const lists = getActiveLists();
         lists.list.splice(index, 1);
-        localStorage.setItem(lists.storageKey, JSON.stringify(lists.list));
+        SafeStorage.setItem(lists.storageKey, JSON.stringify(lists.list));
         renderCheckboxes();
     }
 }
@@ -565,7 +591,7 @@ function checkForbiddenWords(text) {
     
     const found = [];
     forbiddenList.forEach(word => {
-        const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escaped = word.replace(new RegExp('[.*+?^${}()|[\\]\\\\]', 'g'), '\\$&');
         const regex = new RegExp(escaped, 'gi');
         if (regex.test(text)) {
             found.push(word);
@@ -604,9 +630,9 @@ async function testApiKey() {
         if (response.ok) {
             setApiStatus("API 연결 성공! 사용 가능한 키입니다.", "success");
             if (saveKeyChk.checked) {
-                localStorage.setItem('gemini_api_key_v8', apiKey);
+                SafeStorage.setItem('gemini_api_key_v8', apiKey);
             } else {
-                localStorage.removeItem('gemini_api_key_v8');
+                SafeStorage.removeItem('gemini_api_key_v8');
             }
         } else {
             throw new Error(`오류 코드: ${response.status}`);
@@ -813,7 +839,7 @@ async function generateBatchRecords() {
             subjectNameInput.focus();
             return;
         }
-        localStorage.setItem('subject_name_v8', subjectName);
+        SafeStorage.setItem('subject_name_v8', subjectName);
     }
 
     const names = namesText.split('\n').map(line => {
@@ -835,11 +861,11 @@ async function generateBatchRecords() {
 
     // Save common configurations
     if (saveKeyChk.checked) {
-        localStorage.setItem('gemini_api_key_v8', apiKey);
+        SafeStorage.setItem('gemini_api_key_v8', apiKey);
     } else {
-        localStorage.removeItem('gemini_api_key_v8');
+        SafeStorage.removeItem('gemini_api_key_v8');
     }
-    localStorage.setItem('gemini_model_v8', selectedModel);
+    SafeStorage.setItem('gemini_model_v8', selectedModel);
 
     // 2. UI Setup for Progress
     isGenerating = true;
@@ -923,7 +949,7 @@ function appendResultRow(name, activities, recordText, rowIndex, isSuccess) {
     // AI 결과 텍스트에서 역량/키워드 관련 모든 형태의 대괄호 영역 파싱 및 삭제
     let extractedKeywords = [];
     let cleanRecordText = recordText;
-    const bracketRegex = /\[[^\]]*(?:역량|키워드|태그|#)[^\]]*\]/gi;
+    const bracketRegex = new RegExp('\\[[^\\]]*(?:역량|키워드|태그|#)[^\\]]*\\]', 'gi');
     const match = recordText.match(bracketRegex);
     if (match) {
         match.forEach(m => {
@@ -1142,7 +1168,7 @@ async function regenerateOneRecord(index) {
         // AI 결과 텍스트에서 역량/키워드 관련 모든 형태의 대괄호 영역 파싱 및 삭제
         let extractedKeywords = [];
         let cleanRecordText = recordText;
-        const bracketRegex = /\[[^\]]*(?:역량|키워드|태그|#)[^\]]*\]/gi;
+        const bracketRegex = new RegExp('\\[[^\\]]*(?:역량|키워드|태그|#)[^\\]]*\\]', 'gi');
         const match = recordText.match(bracketRegex);
         if (match) {
             match.forEach(m => {
@@ -1250,7 +1276,7 @@ async function rewriteSentence(index, mode, btnElement) {
         // AI 결과 텍스트에서 역량/키워드 관련 모든 형태의 대괄호 영역 파싱 및 삭제
         let extractedKeywords = [];
         let cleanCorrectedText = correctedText;
-        const bracketRegex = /\[[^\]]*(?:역량|키워드|태그|#)[^\]]*\]/gi;
+        const bracketRegex = new RegExp('\\[[^\\]]*(?:역량|키워드|태그|#)[^\\]]*\\]', 'gi');
         const match = correctedText.match(bracketRegex);
         if (match) {
             match.forEach(m => {
@@ -1472,7 +1498,7 @@ function replaceAllTexts() {
 
 // 정규식 특수문자 이스케이프 유틸리티
 function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return string.replace(new RegExp('[.*+?^${}()|[\\]\\\\]', 'g'), '\\$&');
 }
 
 // 현재 세션 이력을 기록 보관소에 저장
@@ -1508,9 +1534,9 @@ function saveCurrentSessionToHistory() {
         results: globalResults
     };
     
-    let history = JSON.parse(localStorage.getItem('eduwrite_history_v8')) || [];
+    let history = JSON.parse(SafeStorage.getItem('eduwrite_history_v8')) || [];
     history.unshift(newSession); // 최신 보관 내역이 제일 먼저 오도록
-    localStorage.setItem('eduwrite_history_v8', JSON.stringify(history));
+    SafeStorage.setItem('eduwrite_history_v8', JSON.stringify(history));
     
     alert("💾 현재 생성 세션이 로컬 기록 보관소에 안전하게 저장되었습니다!");
 }
@@ -1518,7 +1544,7 @@ function saveCurrentSessionToHistory() {
 // 보관소 대시보드 카드 렌더링
 function renderHistoryDashboard() {
     historyCardGrid.innerHTML = '';
-    const history = JSON.parse(localStorage.getItem('eduwrite_history_v8')) || [];
+    const history = JSON.parse(SafeStorage.getItem('eduwrite_history_v8')) || [];
     
     if (history.length === 0) {
         historyCardGrid.innerHTML = `
@@ -1555,7 +1581,7 @@ function renderHistoryDashboard() {
             <h3 class="card-title">${session.sessionName}</h3>
             <div class="card-info-row">
                 <div class="card-info-item">👤 ${session.studentCount}명</div>
-                <div class="card-info-item">⚙️ ${session.options.model.replace('gemini-', '')}</div>
+                <div class="card-info-item">⚙️ ${(session.options && session.options.model) ? session.options.model.replace('gemini-', '') : '3.5-flash'}</div>
             </div>
             <p style="font-size: 0.78rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px;">
                 <strong>학생:</strong> ${sampleStudents}${suffix}
@@ -1583,7 +1609,7 @@ function renderHistoryDashboard() {
 
 // 보관소 히스토리에서 데이터 가져와 현재 상태 복구
 function loadSessionFromHistory(index) {
-    const history = JSON.parse(localStorage.getItem('eduwrite_history_v8')) || [];
+    const history = JSON.parse(SafeStorage.getItem('eduwrite_history_v8')) || [];
     const session = history[index];
     
     if (!session) return;
@@ -1614,14 +1640,15 @@ function loadSessionFromHistory(index) {
     studentNamesInput.value = session.studentNames || '';
     updateStudentCount();
     
-    modelSelect.value = session.options.model || 'gemini-3.5-flash';
-    lengthSelect.value = session.options.length || 'medium';
-    toneSelect.value = session.options.tone || 'default';
-    customPromptInput.value = session.options.customPrompt || '';
+    const options = session.options || {};
+    modelSelect.value = options.model || 'gemini-3.5-flash';
+    lengthSelect.value = options.length || 'medium';
+    toneSelect.value = options.tone || 'default';
+    customPromptInput.value = options.customPrompt || '';
     
-    if (tuneNeisChk) tuneNeisChk.checked = session.options.tuneNeis || false;
-    if (tuneCareerChk) tuneCareerChk.checked = session.options.tuneCareer || false;
-    if (tuneGrowthChk) tuneGrowthChk.checked = session.options.tuneGrowth || false;
+    if (tuneNeisChk) tuneNeisChk.checked = !!options.tuneNeis;
+    if (tuneCareerChk) tuneCareerChk.checked = !!options.tuneCareer;
+    if (tuneGrowthChk) tuneGrowthChk.checked = !!options.tuneGrowth;
     
     // 4. 결과 테이블 복구
     globalResults = session.results || [];
@@ -1657,14 +1684,14 @@ function loadSessionFromHistory(index) {
 
 // 보관소 히스토리에서 이력 개별 삭제
 function deleteSessionFromHistory(index) {
-    let history = JSON.parse(localStorage.getItem('eduwrite_history_v8')) || [];
+    let history = JSON.parse(SafeStorage.getItem('eduwrite_history_v8')) || [];
     
     if (!confirm("🗑️ 이 보관 기록을 영구히 삭제하시겠습니까?")) {
         return;
     }
     
     history.splice(index, 1);
-    localStorage.setItem('eduwrite_history_v8', JSON.stringify(history));
+    SafeStorage.setItem('eduwrite_history_v8', JSON.stringify(history));
     
     renderHistoryDashboard();
 }
