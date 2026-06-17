@@ -589,7 +589,7 @@ async function testApiKey() {
     verifyApiBtn.disabled = true;
     setApiStatus("API 연결 테스트 중...", "");
     
-    const testModel = "gemini-2.5-flash";
+    const testModel = "gemini-3.5-flash";
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${testModel}:generateContent?key=${apiKey}`;
     
     try {
@@ -766,12 +766,12 @@ async function fetchGeminiRecord(apiKey, model, prompt, attempt = 1) {
 
         if (response.status === 429) {
             if (attempt <= maxRetries) {
-                const waitTime = attempt * 5; 
-                progressStatus.textContent = `⚠️ 서버 혼잡(429). ${waitTime}초 후 재시도합니다... (시도 ${attempt}/${maxRetries})`;
+                const waitTime = attempt * 30; // 무료 플랜 할당량 복구를 위해 30초 단위로 대기
+                progressStatus.textContent = `⚠️ API 요청 한도 초과(429). 서버 안정화를 위해 ${waitTime}초 후 재시도합니다... (시도 ${attempt}/${maxRetries})`;
                 await delay(waitTime * 1000);
                 return await fetchGeminiRecord(apiKey, model, prompt, attempt + 1);
             } else {
-                throw new Error("서버 과부하가 지속되어 재시도 횟수를 초과했습니다.");
+                throw new Error("서버 과부하(무료 요청 한도 초과)가 지속되어 재시도 횟수를 초과했습니다.");
             }
         }
 
@@ -894,7 +894,7 @@ async function generateBatchRecords() {
         // Insert row to UI
         appendResultRow(studentName, studentActivities, recordText, globalResults.length - 1, isSuccess);
 
-        // Throttle 3 seconds between requests to maintain stability
+        // 다음 학생 생성 전 3초 대기 (유료 키 사용자의 빠른 생성을 위해 기본 3초 유지)
         if (i < names.length - 1) {
             await delay(3000);
         }
@@ -1616,7 +1616,7 @@ function loadSessionFromHistory(index) {
     studentNamesInput.value = session.studentNames || '';
     updateStudentCount();
     
-    modelSelect.value = session.options.model || 'gemini-2.5-flash';
+    modelSelect.value = session.options.model || 'gemini-3.5-flash';
     lengthSelect.value = session.options.length || 'medium';
     toneSelect.value = session.options.tone || 'default';
     customPromptInput.value = session.options.customPrompt || '';
